@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TFT Set 17 Space Gods 덱 추천 DB</title>
+  <style>
+    :root{
+      --bg:#12131a;
+      --panel:#181a24;
+      --panel2:#202331;
+      --card:#171926;
+      --line:#303447;
+      --text:#f4f7ff;
+      --muted:#a9b0c3;
+      --gold:#f2c766;
+      --blue:#6ec8ff;
+      --pink:#ff5d93;
+      --green:#8be28b;
+      --red:#ff7777;
+      --shadow:0 18px 50px rgba(0,0,0,.35);
+      --radius:20px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(110,200,255,.18), transparent 27rem),
+        radial-gradient(circle at 85% 0%, rgba(242,199,102,.16), transparent 26rem),
+        linear-gradient(180deg, #101119 0%, var(--bg) 48%, #0d0e14 100%);
+    }
+    button,input,select{font:inherit}
+    .wrap{max-width:1280px;margin:0 auto;padding:26px 18px 70px}
+    .hero{
+      position:relative;overflow:hidden;border:1px solid rgba(242,199,102,.25);
+      background:linear-gradient(135deg, rgba(32,35,49,.92), rgba(18,19,26,.96));
+      border-radius:28px;box-shadow:var(--shadow);padding:28px;
+    }
+    .hero:before{content:"";position:absolute;inset:-2px;background:radial-gradient(circle at 78% 10%, rgba(242,199,102,.18), transparent 18rem);pointer-events:none}
+    .hero > *{position:relative}
+    .eyebrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;color:var(--gold);font-weight:800;letter-spacing:.02em}
+    h1{margin:10px 0 10px;font-size:clamp(30px,5vw,58px);line-height:1.03;letter-spacing:-.05em}
+    .hero p{margin:0;color:var(--muted);font-size:16px;line-height:1.7;max-width:900px}
+    .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+    .chip{border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.055);padding:9px 13px;border-radius:999px;color:#d8dded;font-size:13px;font-weight:700}
+    .chip strong{color:var(--gold)}
+    .topbar{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;margin-top:18px}
+    .box{border:1px solid rgba(255,255,255,.1);background:rgba(24,26,36,.86);border-radius:var(--radius);padding:18px;box-shadow:0 12px 30px rgba(0,0,0,.18)}
+    .box h2{font-size:18px;margin:0 0 12px;letter-spacing:-.03em}
+    .fortune{display:flex;flex-direction:column;gap:12px}
+    .fortune-result{min-height:118px;padding:18px;border-radius:18px;background:linear-gradient(135deg, rgba(242,199,102,.13), rgba(110,200,255,.08));border:1px solid rgba(242,199,102,.2)}
+    .fortune-result .name{font-size:25px;font-weight:900;color:var(--gold);letter-spacing:-.04em}
+    .fortune-result .meta{margin:8px 0;color:#dce3f7;font-weight:700}
+    .fortune-result .desc{color:var(--muted);line-height:1.6;font-size:14px}
+    .btns{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{cursor:pointer;border:0;border-radius:14px;padding:12px 15px;color:#08111b;background:linear-gradient(135deg,var(--gold),#ffdd88);font-weight:900;box-shadow:0 8px 22px rgba(242,199,102,.18);transition:.18s transform,.18s filter}
+    .btn:hover{transform:translateY(-2px);filter:brightness(1.04)}
+    .btn.secondary{background:rgba(255,255,255,.08);color:var(--text);border:1px solid rgba(255,255,255,.12);box-shadow:none}
+    .status{font-size:13px;color:var(--muted);line-height:1.6}
+    .status b{color:var(--blue)}
+    .panel-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:30px 0 14px}
+    .panel-title h2{margin:0;font-size:25px;letter-spacing:-.04em}
+    .panel-title span{color:var(--muted);font-size:13px}
+    .controls{display:grid;grid-template-columns:2fr repeat(5, minmax(120px, .55fr));gap:10px;margin:14px 0}
+    .controls.comp-controls{grid-template-columns:2fr repeat(3, minmax(130px,.55fr));}
+    input,select{width:100%;background:rgba(255,255,255,.075);color:var(--text);border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:12px 13px;outline:none}
+    input::placeholder{color:#788096}
+    select option{background:#171926;color:#f4f7ff}
+    .grid{display:grid;grid-template-columns:repeat(4, minmax(0,1fr));gap:14px}
+    .card{position:relative;background:linear-gradient(180deg, rgba(32,35,49,.95), rgba(19,21,31,.98));border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:16px;min-height:246px;box-shadow:0 12px 26px rgba(0,0,0,.16);transition:.2s transform,.2s border-color,.2s box-shadow}
+    .card:hover{transform:translateY(-4px);border-color:rgba(242,199,102,.5);box-shadow:0 18px 36px rgba(0,0,0,.25)}
+    .card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .cost{display:inline-flex;align-items:center;gap:5px;background:rgba(242,199,102,.12);color:var(--gold);border:1px solid rgba(242,199,102,.28);border-radius:999px;padding:5px 10px;font-size:13px;font-weight:900;white-space:nowrap}
+    .champ-name{font-size:21px;font-weight:950;line-height:1.12;letter-spacing:-.04em;margin-right:8px}
+    .traits{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 10px}
+    .trait{font-size:12px;color:#dbe3f9;background:rgba(110,200,255,.1);border:1px solid rgba(110,200,255,.18);border-radius:999px;padding:5px 8px;font-weight:800}
+    .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:12px 0}
+    .stat{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:8px 8px;text-align:center}
+    .stat small{display:block;color:var(--muted);font-size:11px;margin-bottom:2px}.stat b{font-size:13px}
+    .ability{margin-top:12px;border-top:1px solid rgba(255,255,255,.1);padding-top:12px}
+    .ability b{display:block;color:var(--gold);margin-bottom:5px}.ability p{margin:0;color:#cbd2e5;font-size:13px;line-height:1.55;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+    .heart{cursor:pointer;display:inline-grid;place-items:center;width:38px;height:38px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#e3e6ef;font-size:19px;transition:.15s}
+    .heart.active{color:white;background:linear-gradient(135deg,#ff5d93,#ff8eb3);border-color:rgba(255,93,147,.4)}
+    .empty{display:none;margin:20px 0;padding:24px;border:1px dashed rgba(255,255,255,.2);border-radius:18px;color:var(--muted);text-align:center;background:rgba(255,255,255,.04)}
+    .comp-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .comp{min-height:250px}.comp .name{font-size:22px;font-weight:950;color:var(--gold);letter-spacing:-.04em}.comp .meta{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}.pill{font-size:12px;font-weight:900;border-radius:999px;padding:6px 9px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.07)}
+    .comp p{color:#cbd2e5;line-height:1.6;font-size:14px;margin:10px 0}.units{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.unit{border-radius:999px;background:rgba(110,200,255,.1);border:1px solid rgba(110,200,255,.2);padding:6px 9px;font-size:12px;font-weight:800;color:#eaf6ff}
+    .note{margin-top:22px;color:var(--muted);font-size:12px;line-height:1.7;border-left:3px solid rgba(242,199,102,.6);padding-left:12px}
+    .loader{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--blue);box-shadow:16px 0 var(--gold),32px 0 var(--pink);animation:bounce 1s infinite ease-in-out alternate}@keyframes bounce{from{opacity:.35;transform:translateY(0)}to{opacity:1;transform:translateY(-3px)}}
+    @media(max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}.controls{grid-template-columns:1fr 1fr 1fr}.topbar{grid-template-columns:1fr}.comp-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:720px){.wrap{padding:14px 10px 50px}.hero{padding:20px}.grid,.comp-grid{grid-template-columns:1fr}.controls,.controls.comp-controls{grid-template-columns:1fr}.panel-title{align-items:flex-start;flex-direction:column}.stat-row{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">🎲 TFT Set 17 <span>SPACE GODS</span></div>
+      <h1>오늘의 추천 덱 · 챔피언 DB</h1>
+      <p>롤체 시즌 17 챔피언 63명 기준으로 검색, 코스트/시너지/데미지 타입 필터, 랜덤 추천 덱 뽑기, 찜하기, LocalStorage 영구 저장까지 한 파일에 넣은 웹페이지입니다.</p>
+      <div class="chips">
+        <span class="chip">챔피언 <strong id="champCount">63</strong>명</span>
+        <span class="chip">덱 조합 <strong id="compCount">0</strong>개</span>
+        <span class="chip">찜 저장 <strong>localStorage</strong></span>
+        <span class="chip">테마 <strong>#12131a</strong></span>
+      </div>
+      <div class="topbar">
+        <div class="box fortune">
+          <h2>🎲 오늘의 운명 덱 뽑기</h2>
+          <div class="fortune-result" id="fortuneResult">
+            <div class="name">버튼을 눌러 추천 덱 뽑기</div>
+            <div class="meta">랜덤으로 하나의 덱을 골라 상단에 보여줍니다.</div>
+            <div class="desc">초보자는 난이도 쉬움/보통 덱부터, 숙련자는 운영덱·5코스트 중심 덱을 선택하면 됩니다.</div>
+          </div>
+          <div class="btns">
+            <button class="btn" id="randomBtn">오늘의 운명 덱 뽑기</button>
+            <button class="btn secondary" id="reloadBtn">공식 원본 데이터 새로고침</button>
+          </div>
+        </div>
+        <div class="box">
+          <h2>📡 데이터 상태</h2>
+          <div class="status" id="dataStatus"><span class="loader"></span> 시즌 17 원본 데이터를 불러오는 중...</div>
+          <div class="note">원본 데이터 로딩에 실패해도 기본 DB로 화면은 계속 작동합니다. 패치별 수치가 바뀔 수 있으므로 배포 전 새로고침 버튼을 한 번 눌러 확인하세요.</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="panel-title">
+        <h2>🧬 시즌 17 챔피언 검색</h2>
+        <span>이름 · 시너지 · 스킬명까지 실시간 필터링</span>
+      </div>
+      <div class="controls">
+        <input id="q" placeholder="챔피언 이름 / 시너지 / 스킬명 검색 예: Jinx, Dark Star, Sniper" />
+        <select id="costFilter"><option value="all">전체 코스트</option><option value="1">1코스트</option><option value="2">2코스트</option><option value="3">3코스트</option><option value="4">4코스트</option><option value="5">5코스트</option></select>
+        <select id="traitFilter"><option value="all">전체 시너지</option></select>
+        <select id="damageFilter"><option value="all">전체 데미지</option><option value="AD">AD/물리</option><option value="AP">AP/마법</option><option value="Hybrid">혼합</option><option value="Utility">유틸/탱커</option></select>
+        <select id="favFilter"><option value="all">전체 보기</option><option value="fav">찜한 챔피언만</option></select>
+        <select id="sortFilter"><option value="cost">코스트순</option><option value="name">이름순</option><option value="trait">시너지순</option></select>
+      </div>
+      <div class="empty" id="champEmpty">🔍 조건에 맞는 추천 덱 조합이 없습니다.</div>
+      <div class="grid" id="champGrid"></div>
+    </section>
+
+    <section>
+      <div class="panel-title">
+        <h2>⚔️ 추천 덱 조합</h2>
+        <span>플레이 스타일 · 데미지 타입 · 핵심 기물 기준</span>
+      </div>
+      <div class="controls comp-controls">
+        <input id="compQ" placeholder="덱 이름 / 핵심 기물 검색 예: Dark Star, Jhin, Shepherd" />
+        <select id="styleFilter"><option value="all">전체 스타일</option><option value="리롤덱">리롤덱</option><option value="운영덱">운영덱</option><option value="패스트8">패스트8</option><option value="고밸류">고밸류</option></select>
+        <select id="compDamageFilter"><option value="all">전체 데미지</option><option value="AD">AD 중심</option><option value="AP">AP 중심</option><option value="Hybrid">혼합</option><option value="Utility">유틸/탱커</option></select>
+        <select id="compFavFilter"><option value="all">전체 보기</option><option value="fav">찜한 덱만</option></select>
+      </div>
+      <div class="empty" id="compEmpty">🔍 조건에 맞는 추천 덱 조합이 없습니다.</div>
+      <div class="comp-grid" id="compGrid"></div>
+    </section>
+  </main>
+
+<script>
+'use strict';
+
+const CDRAGON_URL = 'https://raw.communitydragon.org/latest/cdragon/tft/en_us.json';
+const LS_CHAMPS = 'tft17.favorite.champions.v1';
+const LS_COMPS = 'tft17.favorite.comps.v1';
+
+const championFallback = [
+  {name:'Aatrox', cost:1, traits:['N.O.V.A.','Bastion'], role:'Frontline', damage:'AD', abilityName:'Heal & Strike', ability:'Heal, then deal physical damage. N.O.V.A. Strike cleaves the battlefield and knocks enemies up.'},
+  {name:'Briar', cost:1, traits:['Anima','Primordian','Rogue'], role:'Midline', damage:'AD', abilityName:'Fish Frenzy', ability:'Gains Attack Speed based on missing Health and deals increased physical damage to tank targets.'},
+  {name:'Caitlyn', cost:1, traits:['N.O.V.A.','Fateweaver'], role:'Backline', damage:'AD', abilityName:'Aim For The Head', ability:'Attacks can fire empowered Headshots. N.O.V.A. Strike marks enemies and executes a Headshot when they drop low.'},
+  {name:"Cho'Gath", cost:1, traits:['Dark Star','Brawler'], role:'Frontline', damage:'AP', abilityName:'Accretion', ability:'Deals magic damage to a low-health enemy and permanently gains max Health, with extra gain on kill.'},
+  {name:'Ezreal', cost:1, traits:['Timebreaker','Sniper'], role:'Backline', damage:'AD', abilityName:'Chrono Shot', ability:'Fires a physical-damage shot from the backline. Works naturally with Sniper positioning.'},
+  {name:'Leona', cost:1, traits:['Arbiter','Vanguard'], role:'Frontline', damage:'Utility', abilityName:'Solar Guard', ability:'Defensive frontline spell built around durability, shield or mitigation.'},
+  {name:'Lissandra', cost:1, traits:['Dark Star','Shepherd','Replicator'], role:'Backline', damage:'AP', abilityName:'Dark Matter', ability:'Throws a shard at the current target, dealing magic damage and exploding near the impact point.'},
+  {name:'Nasus', cost:1, traits:['Space Groove','Vanguard'], role:'Frontline', damage:'AP', abilityName:"Groovin' Susan", ability:'Transforms, gains max Health, enters Space Groove and deals magic damage around him each second.'},
+  {name:'Poppy', cost:1, traits:['Meeple','Bastion'], role:'Frontline', damage:'Utility', abilityName:'Huddle Up!', ability:'Gains a shield and grants Armor/MR to nearby allies. Meep bonus grants extra shields.'},
+  {name:"Rek'Sai", cost:1, traits:['Primordian','Brawler'], role:'Frontline', damage:'AP', abilityName:'Upheaval', ability:'Heals, then briefly knocks up adjacent enemies and deals magic damage.'},
+  {name:'Talon', cost:1, traits:['Stargazer','Rogue'], role:'Midline', damage:'AD', abilityName:"Diviner's Judgment", ability:'Stabs the target, applies a long physical bleed, then leaps to a high-percent-Health enemy.'},
+  {name:'Teemo', cost:1, traits:['Space Groove','Shepherd'], role:'Backline', damage:'AP', abilityName:'Double Time', ability:'Attacks apply stacking magic damage. Active grants high Attack Speed for several attacks.'},
+  {name:'Twisted Fate', cost:1, traits:['Stargazer','Fateweaver'], role:'Backline', damage:'AP', abilityName:"Fate's Gambit", ability:'Draws a random-value card and deals magic damage. Overkill damage can bounce to a nearby enemy.'},
+  {name:'Veigar', cost:1, traits:['Meeple','Replicator'], role:'Backline', damage:'AP', abilityName:'Meepteor Shower', ability:'Calls down a Meepteor on the target. Meep bonus adds mini Meepteors to nearby targets.'},
+
+  {name:'Akali', cost:2, traits:['N.O.V.A.','Marauder'], role:'Midline', damage:'AD', abilityName:'Star Strike', ability:'Repositions and throws piercing kunai. Kunai deal physical damage and reduce Armor, stronger on crit.'},
+  {name:"Bel'Veth", cost:2, traits:['Primordian','Challenger','Marauder'], role:'Frontline', damage:'AD', abilityName:'Tidal Slashes', ability:'Unleashes a flurry of slashes on the current target, dealing repeated physical damage.'},
+  {name:'Gnar', cost:2, traits:['Meeple','Sniper'], role:'Backline', damage:'AD', abilityName:'Slingshot Maneuver', ability:'Every fifth attack launches a returning boomerang. Meep bonus adds Meeps that attack alongside him.'},
+  {name:'Gragas', cost:2, traits:['Psionic','Brawler'], role:'Frontline', damage:'AP', abilityName:'Chemical Rage', ability:'Heals over time, then deals magic damage around the target and Chills enemies.'},
+  {name:'Gwen', cost:2, traits:['Space Groove','Rogue'], role:'Midline', damage:'AP', abilityName:"Dance n' Dice", ability:'Attacks deal magic damage. Dashes and snips low-percent-Health enemies, resetting on kill.'},
+  {name:'Jax', cost:2, traits:['Stargazer','Bastion'], role:'Frontline', damage:'AP', abilityName:'Counter Star-ike', ability:'Enters a defensive stance, gains shield and damage reduction, then strikes and stuns nearby enemies.'},
+  {name:'Jinx', cost:2, traits:['Anima','Challenger'], role:'Backline', damage:'AD', abilityName:'Fishbones!', ability:'Fires a cone barrage of bullets, each dealing physical damage to the first target hit.'},
+  {name:'Meepsie', cost:2, traits:['Meeple','Shepherd','Voyager'], role:'Frontline', damage:'AP', abilityName:'Meep Impact', ability:'Heals, slams the target, knocks up, and sends meepwaves through the target row.'},
+  {name:'Milio', cost:2, traits:['Timebreaker','Fateweaver'], role:'Backline', damage:'AP', abilityName:'ULTRA MEGA TIME KICK', ability:'Kicks a bouncing ball that deals magic damage. Each bounce can continue with halved odds.'},
+  {name:'Mordekaiser', cost:2, traits:['Dark Star','Conduit','Vanguard'], role:'Frontline', damage:'AP', abilityName:'Indestructible', ability:'Gains shield, repeatedly gains more shield and deals magic damage nearby, then heals from remaining shield.'},
+  {name:'Pantheon', cost:2, traits:['Timebreaker','Brawler','Replicator'], role:'Frontline', damage:'AD', abilityName:'Advanced Defences', ability:'Gains a shield and durability, while dealing physical damage each second in a cone.'},
+  {name:'Pyke', cost:2, traits:['Psionic','Voyager'], role:'Midline', damage:'AD', abilityName:'Marked for Death', ability:'Throws a harpoon, pulls the first enemy hit, teleports behind them and cleaves for physical damage.'},
+  {name:'Zoe', cost:2, traits:['Arbiter','Conduit'], role:'Backline', damage:'AP', abilityName:'Paddle Star', ability:'Fires a star that damages enemies it passes through, then redirects to a distant enemy several times.'},
+
+  {name:'Aurora', cost:3, traits:['Anima','Voyager'], role:'Backline', damage:'AP', abilityName:'Hopped-Up Hacks', ability:'Opens a rift, hacks enemies, deals magic damage and stores part of incoming damage as true damage.'},
+  {name:'Diana', cost:3, traits:['Arbiter','Challenger'], role:'Midline', damage:'AP', abilityName:'Pale Cascade', ability:'Attacks deal bonus magic damage. Active grants shield and orbiting magic-damage orbs.'},
+  {name:'Fizz', cost:3, traits:['Meeple','Rogue'], role:'Midline', damage:'AP', abilityName:'Playful Strike', ability:'Mobile Rogue-style damage dealer that dives into vulnerable targets.'},
+  {name:'Illaoi', cost:3, traits:['Anima','Vanguard','Shepherd'], role:'Frontline', damage:'Utility', abilityName:'Tentacle Slam', ability:'Durable frontline unit that supports Shepherd and Anima boards.'},
+  {name:"Kai'Sa", cost:3, traits:['Dark Star','Rogue'], role:'Backline', damage:'Hybrid', abilityName:'Void Barrage', ability:'Dark Star/Rogue carry option with burst damage pressure.'},
+  {name:'Lulu', cost:3, traits:['Stargazer','Replicator'], role:'Backline', damage:'Utility', abilityName:'Cosmic Whimsy', ability:'Support caster that pairs with Replicator and Stargazer boards.'},
+  {name:'Maokai', cost:3, traits:['N.O.V.A.','Brawler'], role:'Frontline', damage:'Utility', abilityName:'Nature Surge', ability:'Brawler frontline for N.O.V.A. boards.'},
+  {name:'Miss Fortune', cost:3, traits:['Gun Goddess','Gun Goddess-1'], role:'Backline', damage:'Hybrid', abilityName:'Gun Goddess Arsenal', ability:'Choose a mode when fielded. Mode determines her ability and trait behavior.'},
+  {name:'Ornn', cost:3, traits:['Space Groove','Bastion'], role:'Frontline', damage:'AP', abilityName:'Disco Inferno', ability:'Forges a temporary completed item, gains shield, breathes fire and enters Space Groove after shielding.'},
+  {name:'Rhaast', cost:3, traits:['Redeemer'], role:'Frontline', damage:'AD', abilityName:'Divine Scythe', ability:'Gains durability and heals, then slashes forward, dealing physical damage and knocking enemies up.'},
+  {name:'Samira', cost:3, traits:['Space Groove','Sniper'], role:'Backline', damage:'AD', abilityName:'Jump and Jive', ability:'Shoots knocked-up enemies and enters Space Groove. Active fires a volley and knocks up the target.'},
+  {name:'Urgot', cost:3, traits:['Mecha','Brawler','Marauder'], role:'Frontline', damage:'AD', abilityName:'Mecha Crush', ability:'Brawler/Marauder Mecha bruiser built for sustained frontline damage.'},
+  {name:'Viktor', cost:3, traits:['Psionic','Conduit'], role:'Backline', damage:'AP', abilityName:'Arcane Vector', ability:'Psionic Conduit caster with magic-damage utility.'},
+
+  {name:'Aurelion Sol', cost:4, traits:['Mecha','Conduit'], role:'Backline', damage:'AP', abilityName:'Celestial Beam', ability:'Mecha Conduit magic carry.'},
+  {name:'Corki', cost:4, traits:['Meeple','Fateweaver'], role:'Backline', damage:'AD', abilityName:'Asteroid Blaster', ability:'Strafes and unleashes missiles split between the target and nearby enemies. Meep bonus adds explosive shots.'},
+  {name:'Karma', cost:4, traits:['Dark Star','Voyager'], role:'Backline', damage:'AP', abilityName:'Dark Voyager', ability:'Dark Star AP carry/support option for Fast 8 boards.'},
+  {name:'Kindred', cost:4, traits:['N.O.V.A.','Challenger'], role:'Backline', damage:'AD', abilityName:'Twin Mark', ability:'Jumps and fires arrows at multiple targets. N.O.V.A. Strike adds damage amplification and marks enemies.'},
+  {name:'LeBlanc', cost:4, traits:['Arbiter','Shepherd'], role:'Backline', damage:'AP', abilityName:'Fracture Reality', ability:'Attacks deal magic damage. Summons clones that attack alongside her and fire a final magic bolt.'},
+  {name:'Master Yi', cost:4, traits:['Psionic','Marauder'], role:'Midline', damage:'AD', abilityName:'Psi Strikes', ability:'Every third attack double-slashes. Active enters Psi-State with Omnivamp, Attack Speed and psychic projections.'},
+  {name:'Morgana', cost:4, traits:['Dark Lady'], role:'Midline', damage:'AP', abilityName:'Dark Form', ability:'Transforms, gains Health, tethers to nearby champions, damages enemies and restores injured allies.'},
+  {name:'Nami', cost:4, traits:['Space Groove','Replicator'], role:'Backline', damage:'AP', abilityName:'Bubble Pop', ability:'Space Groove Replicator caster with bouncing magic-damage pressure.'},
+  {name:'Nunu & Willump', cost:4, traits:['Stargazer','Vanguard'], role:'Frontline', damage:'Utility', abilityName:'Cosmic Snowball', ability:'High-cost Vanguard frontline for Stargazer boards.'},
+  {name:'Rammus', cost:4, traits:['Meeple','Bastion'], role:'Frontline', damage:'Utility', abilityName:'Defensive Curl', ability:'Meeple/Bastion frontline tank.'},
+  {name:'Riven', cost:4, traits:['Timebreaker','Rogue'], role:'Midline', damage:'AD', abilityName:'Blade Time', ability:'Mobile Timebreaker Rogue carry option.'},
+  {name:'Tahm Kench', cost:4, traits:['Oracle','Brawler'], role:'Frontline', damage:'Utility', abilityName:'Oracle Appetite', ability:'Durable Brawler unique unit for high-value boards.'},
+  {name:'The Mighty Mech', cost:4, traits:['Mecha','Voyager'], role:'Frontline', damage:'Hybrid', abilityName:'Mighty Mecha', ability:'Mecha/Voyager special unit used in high-value compositions.'},
+  {name:'Xayah', cost:4, traits:['Stargazer','Sniper'], role:'Backline', damage:'AD', abilityName:'Star Feathers', ability:'Stargazer Sniper AD carry.'},
+
+  {name:'Bard', cost:5, traits:['Meeple','Conduit'], role:'Backline', damage:'AP', abilityName:'Ultra Friendly Object', ability:'Summons a UFO over the target, dealing repeated magic damage and sometimes abducting killed enemies as copies.'},
+  {name:'Blitzcrank', cost:5, traits:['Party Animal','Space Groove','Vanguard'], role:'Frontline', damage:'AP', abilityName:'Party Crasher', ability:'Calls lightning bolts, then throws the target into a disco ball to deal large AoE magic damage.'},
+  {name:'Fiora', cost:5, traits:['Divine Duelist','Anima','Marauder'], role:'Midline', damage:'Hybrid', abilityName:'Perfect Bladework', ability:'Reveals vitals, dashes to strike them for bonus true damage, and heals from damage dealt.'},
+  {name:'Graves', cost:5, traits:['Factory New'], role:'Backline', damage:'AD', abilityName:'Factory New', ability:'Unique high-cost AD unit.'},
+  {name:'Jhin', cost:5, traits:['Dark Star','Eradicator','Sniper'], role:'Backline', damage:'AD', abilityName:'Curtain Call', ability:'Dark Star Sniper 5-cost carry.'},
+  {name:'Shen', cost:5, traits:['Bulwark','Bastion'], role:'Frontline', damage:'Utility', abilityName:'Bulwark Relic', ability:'Summons or empowers a relic that shields and boosts adjacent allies.'},
+  {name:'Sona', cost:5, traits:['Commander','Psionic','Shepherd'], role:'Backline', damage:'Utility', abilityName:'Command Performance', ability:'Commander/Psionic/Shepherd 5-cost support.'},
+  {name:'Vex', cost:5, traits:['Doomer'], role:'Backline', damage:'AP', abilityName:'Doom', ability:'Unique AP Doomer 5-cost unit.'},
+  {name:'Zed', cost:5, traits:['Galaxy Hunter'], role:'Midline', damage:'AD', abilityName:'Quantum Clone', ability:'Creates a clone behind the target. Clone inherits items, stats and current Health, and can cast Quantum Clone.'}
+];
+
+const comps = [
+  {id:'dark-stars', name:'Dark Stars', style:'패스트8', damage:'Hybrid', difficulty:'보통', desc:'Dark Star 4~6을 중심으로 Jhin/Karma를 후반 캐리로 세우는 안정형 운영덱. 앞라인과 후열 밸런스가 좋습니다.', core:['Cho\'Gath','Mordekaiser','Kai\'Sa','Aurelion Sol','Karma','Tahm Kench','The Mighty Mech','Jhin']},
+  {id:'primordian-challengers', name:'Primordian Challengers', style:'리롤덱', damage:'AD', difficulty:'쉬움', desc:'Briar/Rek\'Sai/Bel\'Veth/Jinx를 초중반부터 모아 스노우볼을 굴리는 AD 중심 리롤덱입니다.', core:['Briar','Rek\'Sai','Akali','Bel\'Veth','Jinx','Maokai','Rhaast','Kindred']},
+  {id:'shepherd-fast8', name:'Shepherd Fast 8', style:'운영덱', damage:'AP', difficulty:'보통', desc:'Shepherd 소환체와 Karma/LeBlanc/Sona 밸류를 활용하는 AP 운영덱. 레벨 8 이후 완성도가 올라갑니다.', core:['Karma','LeBlanc','Illaoi','Sona','The Mighty Mech','Meepsie','Leona','Lissandra','Teemo']},
+  {id:'meepteors', name:'Meepteors', style:'리롤덱', damage:'AP', difficulty:'쉬움', desc:'Lissandra·Poppy·Veigar를 기반으로 Meeple/Replicator를 맞추는 저코스트 AP 리롤덱입니다.', core:['Lissandra','Poppy','Veigar','Bard','Rammus','Illaoi','Meepsie','Mordekaiser']},
+  {id:'tentacles-missiles', name:'Tentacles and Missiles', style:'운영덱', damage:'Hybrid', difficulty:'보통', desc:'Illaoi와 Dark Star 라인을 섞어 앞라인을 버티고 Kai\'Sa/Jhin/Karma로 마무리하는 혼합 운영덱입니다.', core:['Karma','Illaoi','Kai\'Sa','Jhin','Riven','Meepsie','Mordekaiser','Cho\'Gath','Lissandra']},
+  {id:'space-groove', name:'Space Groove Vanguard', style:'고밸류', damage:'Hybrid', difficulty:'보통', desc:'Space Groove 유지력과 Blitzcrank/Nami/Ornn 밸류를 활용하는 후반형 덱입니다.', core:['Teemo','Nasus','Gwen','Samira','Ornn','Nami','Blitzcrank']},
+  {id:'nova-kindred', name:'N.O.V.A. Kindred', style:'운영덱', damage:'AD', difficulty:'보통', desc:'N.O.V.A. 파워 서지를 Kindred와 Akali/Jinx 라인에 실어주는 AD 중심 운영덱입니다.', core:['Aatrox','Caitlyn','Akali','Maokai','Kindred','Jinx','Bel\'Veth','Shen']},
+  {id:'psionic-yi', name:'Psionic Master Yi', style:'운영덱', damage:'AD', difficulty:'어려움', desc:'Psionic 아이템과 Master Yi를 결합하는 4코스트 중심 운영덱. 아이템 선택과 앞라인 관리가 중요합니다.', core:['Pyke','Gragas','Viktor','Master Yi','Sona','Tahm Kench','Mordekaiser']},
+  {id:'jhin-snipers', name:'Jhin Snipers', style:'고밸류', damage:'AD', difficulty:'보통', desc:'Sniper 라인과 Dark Star를 결합해 후방 캐리 Jhin/Xayah/Samira를 보호하는 덱입니다.', core:['Ezreal','Gnar','Samira','Xayah','Jhin','Mordekaiser','Cho\'Gath','Shen']},
+  {id:'arbiters', name:'Arbiter Control', style:'운영덱', damage:'AP', difficulty:'보통', desc:'Leona·Diana·LeBlanc·Zoe 기반의 AP/유틸 컨트롤 덱입니다.', core:['Leona','Zoe','Diana','LeBlanc','Morgana','Shen','Sona']},
+  {id:'mecha-voyager', name:'Mecha Voyager', style:'고밸류', damage:'Hybrid', difficulty:'어려움', desc:'Aurelion Sol, Urgot, The Mighty Mech를 중심으로 Mecha 전환 밸류를 노리는 후반 덱입니다.', core:['Urgot','Aurelion Sol','The Mighty Mech','Corki','Karma','Tahm Kench','Blitzcrank']},
+  {id:'fiora-anima', name:'Fiora Anima', style:'고밸류', damage:'Hybrid', difficulty:'어려움', desc:'Anima 누적 보상과 Fiora 5코스트 캐리력을 결합하는 고점형 덱입니다.', core:['Briar','Jinx','Aurora','Illaoi','Fiora','Akali','Rhaast','Shen']}
+];
+
+let champions = championFallback.map(c => ({...c, hp:'—', ad:'—', mana:'—', range:'—'}));
+let favoriteChampions = new Set(JSON.parse(localStorage.getItem(LS_CHAMPS) || '[]'));
+let favoriteComps = new Set(JSON.parse(localStorage.getItem(LS_COMPS) || '[]'));
+
+const $ = (id) => document.getElementById(id);
+const clean = (v) => String(v ?? '').replace(/<[^>]*>/g,'').replace(/\s+/g,' ').replace(/&nbsp;/g,' ').trim();
+const key = (v) => clean(v).toLowerCase().replace(/[^a-z0-9가-힣]/g,'');
+const first = (v) => Array.isArray(v) ? v[0] : v;
+const inferDamage = (text, fallback='Utility') => {
+  const t = String(text || '').toLowerCase();
+  const ad = /physical|attack damage|\bad\b/.test(t);
+  const ap = /magic|ability power|\bap\b/.test(t);
+  const tr = /true damage/.test(t);
+  if ((ad && ap) || tr) return 'Hybrid';
+  if (ad) return 'AD';
+  if (ap) return 'AP';
+  return fallback;
+};
+const asMainStat = (v) => {
+  if (v === undefined || v === null || v === '') return '—';
+  if (Array.isArray(v)) return v[0] ?? '—';
+  if (typeof v === 'string' && v.includes('/')) return v.split('/')[0].trim();
+  return String(v);
+};
+
+function findSet17(data){
+  const buckets = [data?.sets, data?.setData, data?.setsData].filter(Array.isArray);
+  for (const arr of buckets) {
+    const found = arr.find(s => Number(s.number) === 17 || /TFTSet17/i.test(String(s.apiName || s.mutator || s.name || '')));
+    if (found) return found;
+  }
+  return null;
+}
+
+function mapUnit(u){
+  const stats = u.stats || u.statsByStar || {};
+  const ability = u.ability || first(u.abilities) || {};
+  const name = clean(u.name || u.displayName || u.characterName || u.apiName);
+  return {
+    name,
+    cost: Number(u.cost ?? u.price ?? 0),
+    traits: Array.isArray(u.traits) ? u.traits.map(clean).filter(Boolean) : [],
+    role: '—',
+    damage: inferDamage((ability.desc || ability.description || '') + ' ' + (ability.name || '')),
+    hp: asMainStat(stats.hp ?? stats.health ?? stats.Health ?? stats.mHP ?? u.health),
+    ad: asMainStat(stats.damage ?? stats.attackDamage ?? stats.attackdamage ?? stats.Damage ?? u.damage),
+    mana: asMainStat((stats.initialMana !== undefined || stats.mana !== undefined) ? `${stats.initialMana ?? 0} / ${stats.mana ?? '—'}` : (u.mana ?? ability.mana)),
+    range: asMainStat(stats.range ?? u.range),
+    abilityName: clean(ability.name || u.spellName || '스킬 정보'),
+    ability: clean(ability.desc || ability.description || u.spellDesc || '스킬 설명 없음')
+  };
+}
+
+async function loadLiveData(){
+  $('dataStatus').innerHTML = '<span class="loader"></span> CommunityDragon 시즌 17 데이터를 불러오는 중...';
+  try{
+    const res = await fetch(CDRAGON_URL, {cache:'no-store'});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const set17 = findSet17(data);
+    const unitsRaw = set17?.champions || set17?.units || [];
+    if(!Array.isArray(unitsRaw) || !unitsRaw.length) throw new Error('Set 17 champion array not found');
+    const liveUnits = unitsRaw.map(mapUnit)
+      .filter(u => u.cost >= 1 && u.cost <= 5 && u.name && !/apex primordian/i.test(u.name))
+      .filter((u, idx, arr) => arr.findIndex(x => key(x.name) === key(u.name)) === idx);
+    const liveByName = new Map(liveUnits.map(u => [key(u.name), u]));
+    champions = championFallback.map(base => {
+      const live = liveByName.get(key(base.name));
+      if(!live) return {...base, hp:'—', ad:'—', mana:'—', range:'—'};
+      return {
+        ...base,
+        ...live,
+        traits: live.traits.length ? live.traits : base.traits,
+        role: base.role,
+        damage: inferDamage(live.ability, base.damage),
+        abilityName: live.abilityName || base.abilityName,
+        ability: live.ability || base.ability
+      };
+    });
+    $('dataStatus').innerHTML = `<b>연결 완료</b><br>CommunityDragon 최신 Set 17 원본에서 챔피언 수치와 스킬 설명을 불러왔습니다. 표시 챔피언: ${champions.length}명`;
+  }catch(err){
+    champions = championFallback.map(c => ({...c, hp:'—', ad:'—', mana:'—', range:'—'}));
+    $('dataStatus').innerHTML = `<b style="color:var(--red)">원본 로딩 실패</b><br>기본 내장 DB로 표시 중입니다. 사유: ${clean(err.message)}`;
+  }
+  populateTraitFilter();
+  renderChampions();
+  renderComps();
+}
+
+function populateTraitFilter(){
+  const traits = [...new Set(champions.flatMap(c => c.traits))].sort((a,b)=>a.localeCompare(b));
+  $('traitFilter').innerHTML = '<option value="all">전체 시너지</option>' + traits.map(t => `<option value="${t}">${t}</option>`).join('');
+}
+
+function championCard(c){
+  const fav = favoriteChampions.has(c.name);
+  return `<article class="card">
+    <div class="card-head">
+      <div><div class="champ-name">${c.name}</div><div class="cost">💰 ${c.cost} Cost</div></div>
+      <button class="heart ${fav ? 'active' : ''}" data-champ-heart="${c.name}" title="찜하기">${fav ? '♥' : '♡'}</button>
+    </div>
+    <div class="traits">${c.traits.map(t=>`<span class="trait">${t}</span>`).join('')}</div>
+    <div class="stat-row">
+      <div class="stat"><small>HP</small><b>${c.hp || '—'}</b></div>
+      <div class="stat"><small>AD</small><b>${c.ad || '—'}</b></div>
+      <div class="stat"><small>DMG</small><b>${c.damage || '—'}</b></div>
+      <div class="stat"><small>Role</small><b>${c.role || '—'}</b></div>
+    </div>
+    <div class="ability"><b>${c.abilityName || '스킬 정보'}</b><p>${c.ability || '스킬 설명 없음'}</p></div>
+  </article>`;
+}
+
+function renderChampions(){
+  const q = key($('q').value);
+  const cost = $('costFilter').value;
+  const trait = $('traitFilter').value;
+  const damage = $('damageFilter').value;
+  const favOnly = $('favFilter').value === 'fav';
+  const sort = $('sortFilter').value;
+  let list = champions.filter(c => {
+    const blob = key([c.name, ...c.traits, c.abilityName, c.ability].join(' '));
+    const matchQ = !q || blob.includes(q);
+    const matchCost = cost === 'all' || String(c.cost) === cost;
+    const matchTrait = trait === 'all' || c.traits.includes(trait);
+    const matchDamage = damage === 'all' || c.damage === damage;
+    const matchFav = !favOnly || favoriteChampions.has(c.name);
+    return matchQ && matchCost && matchTrait && matchDamage && matchFav;
+  });
+  list.sort((a,b)=>{
+    if(sort === 'name') return a.name.localeCompare(b.name);
+    if(sort === 'trait') return (a.traits[0] || '').localeCompare(b.traits[0] || '') || a.cost-b.cost;
+    return a.cost-b.cost || a.name.localeCompare(b.name);
+  });
+  $('champGrid').innerHTML = list.map(championCard).join('');
+  $('champEmpty').style.display = list.length ? 'none' : 'block';
+  $('champCount').textContent = champions.length;
+}
+
+function compCard(c){
+  const fav = favoriteComps.has(c.id);
+  return `<article class="card comp">
+    <div class="card-head"><div class="name">${c.name}</div><button class="heart ${fav ? 'active' : ''}" data-comp-heart="${c.id}" title="찜하기">${fav ? '♥' : '♡'}</button></div>
+    <div class="meta"><span class="pill">${c.style}</span><span class="pill">${c.damage}</span><span class="pill">난이도 ${c.difficulty}</span></div>
+    <p>${c.desc}</p>
+    <div class="units">${c.core.map(u=>`<span class="unit">${u}</span>`).join('')}</div>
+  </article>`;
+}
+function renderComps(){
+  const q = key($('compQ').value);
+  const style = $('styleFilter').value;
+  const damage = $('compDamageFilter').value;
+  const favOnly = $('compFavFilter').value === 'fav';
+  const list = comps.filter(c => {
+    const blob = key([c.name, c.style, c.damage, c.desc, ...c.core].join(' '));
+    return (!q || blob.includes(q)) && (style === 'all' || c.style === style) && (damage === 'all' || c.damage === damage) && (!favOnly || favoriteComps.has(c.id));
+  });
+  $('compGrid').innerHTML = list.map(compCard).join('');
+  $('compEmpty').style.display = list.length ? 'none' : 'block';
+  $('compCount').textContent = comps.length;
+}
+
+function randomComp(){
+  const pick = comps[Math.floor(Math.random() * comps.length)];
+  $('fortuneResult').innerHTML = `<div class="name">${pick.name}</div><div class="meta">${pick.style} · ${pick.damage} 중심 · 난이도 ${pick.difficulty}</div><div class="desc">${pick.desc}<br><br><b style="color:var(--blue)">핵심 기물:</b> ${pick.core.join(', ')}</div>`;
+}
+
+function saveFavorites(){
+  localStorage.setItem(LS_CHAMPS, JSON.stringify([...favoriteChampions]));
+  localStorage.setItem(LS_COMPS, JSON.stringify([...favoriteComps]));
+}
+
+document.addEventListener('click', (e)=>{
+  const ch = e.target.closest('[data-champ-heart]')?.dataset.champHeart;
+  if(ch){ favoriteChampions.has(ch) ? favoriteChampions.delete(ch) : favoriteChampions.add(ch); saveFavorites(); renderChampions(); return; }
+  const comp = e.target.closest('[data-comp-heart]')?.dataset.compHeart;
+  if(comp){ favoriteComps.has(comp) ? favoriteComps.delete(comp) : favoriteComps.add(comp); saveFavorites(); renderComps(); return; }
+});
+['q','costFilter','traitFilter','damageFilter','favFilter','sortFilter'].forEach(id => $(id).addEventListener('input', renderChampions));
+['compQ','styleFilter','compDamageFilter','compFavFilter'].forEach(id => $(id).addEventListener('input', renderComps));
+$('randomBtn').addEventListener('click', randomComp);
+$('reloadBtn').addEventListener('click', loadLiveData);
+
+populateTraitFilter();
+renderChampions();
+renderComps();
+randomComp();
+loadLiveData();
+</script>
+</body>
+</html>
