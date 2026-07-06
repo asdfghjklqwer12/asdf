@@ -1,0 +1,2308 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>롤체 시즌 17 챔피언 · 추천 덱 검색기</title>
+  <style>
+    :root{
+      --bg:#12131a; --panel:#181b27; --panel2:#202436; --card:#171a27; --line:#34394d;
+      --text:#f7f8ff; --muted:#b8c0d6; --dim:#7f879d; --gold:#f2c766; --blue:#6ec8ff;
+      --pink:#ff5d93; --green:#8be28b; --red:#ff7777; --shadow:0 18px 52px rgba(0,0,0,.36);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",Arial,sans-serif;color:var(--text);background:radial-gradient(circle at 14% 8%,rgba(110,200,255,.16),transparent 30rem),radial-gradient(circle at 90% 0,rgba(242,199,102,.15),transparent 28rem),linear-gradient(180deg,#101119 0%,var(--bg) 52%,#0d0e14 100%);}
+    button,input,select{font:inherit}
+    .wrap{max-width:1320px;margin:0 auto;padding:28px 18px 80px}
+    .hero{position:relative;overflow:hidden;border:1px solid rgba(242,199,102,.25);background:linear-gradient(135deg,rgba(32,36,54,.94),rgba(18,19,26,.98));border-radius:30px;box-shadow:var(--shadow);padding:30px}
+    .hero:before{content:"";position:absolute;inset:-2px;background:radial-gradient(circle at 78% 8%,rgba(242,199,102,.18),transparent 18rem);pointer-events:none}
+    .hero>*{position:relative}
+    .eyebrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;color:var(--gold);font-weight:900;letter-spacing:-.01em}
+    h1{margin:10px 0 10px;font-size:clamp(31px,5vw,60px);line-height:1.05;letter-spacing:-.055em}
+    .hero p{margin:0;color:var(--muted);font-size:16px;line-height:1.78;max-width:940px;word-break:keep-all}
+    .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+    .chip{border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.06);padding:9px 13px;border-radius:999px;color:#e3e7f5;font-size:13px;font-weight:800}
+    .chip strong{color:var(--gold)}
+    .topbar{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-top:18px}
+    .box{border:1px solid rgba(255,255,255,.105);background:rgba(24,27,39,.88);border-radius:var(--radius);padding:18px;box-shadow:0 12px 30px rgba(0,0,0,.19)}
+    .box h2{font-size:18px;margin:0 0 12px;letter-spacing:-.035em}
+    .fortune{display:flex;flex-direction:column;gap:12px}
+    .fortune-result{min-height:126px;padding:18px;border-radius:18px;background:linear-gradient(135deg,rgba(242,199,102,.14),rgba(110,200,255,.08));border:1px solid rgba(242,199,102,.22)}
+    .fortune-result .name{font-size:26px;font-weight:950;color:var(--gold);letter-spacing:-.045em}
+    .fortune-result .meta{margin:8px 0;color:#edf2ff;font-weight:850}
+    .fortune-result .desc{color:#d4dbef;line-height:1.72;font-size:14px;word-break:keep-all}
+    .btns{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{cursor:pointer;border:0;border-radius:14px;padding:12px 15px;color:#08111b;background:linear-gradient(135deg,var(--gold),#ffdd88);font-weight:950;box-shadow:0 8px 22px rgba(242,199,102,.18);transition:.18s transform,.18s filter}
+    .btn:hover{transform:translateY(-2px);filter:brightness(1.04)}
+    .btn.secondary{background:rgba(255,255,255,.08);color:var(--text);border:1px solid rgba(255,255,255,.13);box-shadow:none}
+    .status{font-size:13px;color:var(--muted);line-height:1.7;word-break:keep-all}
+    .status b{color:var(--blue)}
+    .search-help{margin-top:10px;color:var(--dim);font-size:12px;line-height:1.65;word-break:keep-all}
+    .panel-title{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:31px 0 14px}
+    .panel-title h2{margin:0;font-size:26px;letter-spacing:-.045em}
+    .panel-title span{color:var(--muted);font-size:13px}
+    .controls{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:2.15fr repeat(5,minmax(118px,.56fr));gap:10px;margin:14px 0 16px;padding:12px;background:rgba(18,19,26,.88);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.08);border-radius:20px}
+    .controls.comp-controls{grid-template-columns:2fr repeat(3,minmax(130px,.55fr));}
+    input,select{width:100%;background:rgba(255,255,255,.086);color:var(--text);border:1px solid rgba(255,255,255,.145);border-radius:14px;padding:13px 13px;outline:none}
+    input:focus,select:focus{border-color:rgba(242,199,102,.72);box-shadow:0 0 0 3px rgba(242,199,102,.12)}
+    input::placeholder{color:#98a1b7}
+    select option{background:#171926;color:#f4f7ff}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:-4px 0 12px;color:var(--muted);font-size:13px}
+    .mini-btn{cursor:pointer;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.065);color:#e7eaf5;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:800}
+    .result-count b{color:var(--gold)}
+    .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+    .card{position:relative;background:linear-gradient(180deg,rgba(32,36,54,.98),rgba(19,21,31,.99));border:1px solid rgba(255,255,255,.105);border-radius:21px;padding:16px;min-height:270px;box-shadow:0 12px 26px rgba(0,0,0,.17);transition:.2s transform,.2s border-color,.2s box-shadow}
+    .card:hover{transform:translateY(-4px);border-color:rgba(242,199,102,.55);box-shadow:0 18px 36px rgba(0,0,0,.26)}
+    .card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .champ-name{font-size:23px;font-weight:950;line-height:1.12;letter-spacing:-.05em;margin-right:8px;word-break:keep-all}
+    .champ-sub{margin-top:4px;color:var(--dim);font-size:12px;font-weight:750}
+    .cost{display:inline-flex;align-items:center;gap:5px;background:rgba(242,199,102,.13);color:var(--gold);border:1px solid rgba(242,199,102,.30);border-radius:999px;padding:5px 10px;font-size:13px;font-weight:950;white-space:nowrap;margin-top:9px}
+    .traits{display:flex;gap:6px;flex-wrap:wrap;margin:13px 0 10px}
+    .trait{font-size:12px;color:#edf6ff;background:rgba(110,200,255,.11);border:1px solid rgba(110,200,255,.22);border-radius:999px;padding:6px 9px;font-weight:900}
+    .trait small{color:#a6b0c8;font-weight:750;margin-left:3px}
+    .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:12px 0}
+    .stat{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:9px 8px;text-align:center}
+    .stat small{display:block;color:var(--muted);font-size:11px;margin-bottom:3px}
+    .stat b{font-size:13px;word-break:keep-all}
+    .ability{margin-top:12px;border-top:1px solid rgba(255,255,255,.105);padding-top:12px}
+    .ability b{display:block;color:var(--gold);margin-bottom:6px;font-size:15px}
+    .ability p{margin:0;color:#d6dceb;font-size:13px;line-height:1.62;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all}
+    .heart{cursor:pointer;display:inline-grid;place-items:center;width:39px;height:39px;border-radius:999px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.06);color:#e3e6ef;font-size:20px;transition:.15s;flex:0 0 auto}
+    .heart.active{color:white;background:linear-gradient(135deg,#ff5d93,#ff8eb3);border-color:rgba(255,93,147,.42)}
+    .empty{display:none;margin:20px 0;padding:26px;border:1px dashed rgba(255,255,255,.22);border-radius:18px;color:var(--muted);text-align:center;background:rgba(255,255,255,.045);line-height:1.7}
+    .comp-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .comp{min-height:250px}
+    .comp .name{font-size:23px;font-weight:950;color:var(--gold);letter-spacing:-.045em;word-break:keep-all}
+    .comp .sub{color:var(--dim);font-size:12px;font-weight:750;margin-top:3px}
+    .comp .meta{display:flex;gap:7px;flex-wrap:wrap;margin:11px 0}
+    .pill{font-size:12px;font-weight:900;border-radius:999px;padding:6px 9px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.075)}
+    .comp p{color:#d6dceb;line-height:1.65;font-size:14px;margin:10px 0;word-break:keep-all}
+    .units{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+    .unit{border-radius:999px;background:rgba(110,200,255,.11);border:1px solid rgba(110,200,255,.22);padding:6px 9px;font-size:12px;font-weight:850;color:#eaf6ff}
+    .note{margin-top:22px;color:var(--muted);font-size:12px;line-height:1.75;border-left:3px solid rgba(242,199,102,.6);padding-left:12px;word-break:keep-all}
+    .loader{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--blue);box-shadow:16px 0 var(--gold),32px 0 var(--pink);animation:bounce 1s infinite ease-in-out alternate}
+    @keyframes bounce{from{opacity:.35;transform:translateY(0)}to{opacity:1;transform:translateY(-3px)}}
+    @media(max-width:1120px){.grid{grid-template-columns:repeat(3,1fr)}.controls{grid-template-columns:1fr 1fr 1fr}.topbar{grid-template-columns:1fr}.comp-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:730px){.wrap{padding:14px 10px 55px}.hero{padding:20px}.grid,.comp-grid{grid-template-columns:1fr}.controls,.controls.comp-controls{position:static;grid-template-columns:1fr}.panel-title{align-items:flex-start;flex-direction:column}.stat-row{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">🎲 롤체 시즌 17 <span>SPACE GODS</span></div>
+      <h1>챔피언 · 추천 덱 검색기</h1>
+      <p>한글 이름, 영어 이름, 줄임말, 시너지명, 데미지 타입까지 한 번에 검색되도록 다시 정리했습니다. 예를 들어 <b>징크스</b>, <b>jinx</b>, <b>동물특공대</b>, <b>저격수</b>, <b>3코</b>, <b>마법</b>처럼 입력해도 결과가 잡힙니다.</p>
+      <div class="chips">
+        <span class="chip">챔피언 <strong id="champCount">63</strong>명</span>
+        <span class="chip">덱 조합 <strong id="compCount">0</strong>개</span>
+        <span class="chip">검색 <strong>한글/영문/초성</strong></span>
+        <span class="chip">찜 저장 <strong>localStorage</strong></span>
+      </div>
+      <div class="topbar">
+        <div class="box fortune">
+          <h2>🎲 오늘의 운명 덱 뽑기</h2>
+          <div class="fortune-result" id="fortuneResult">
+            <div class="name">버튼을 눌러 추천 덱 뽑기</div>
+            <div class="meta">랜덤으로 하나의 덱을 골라 상단에 보여줍니다.</div>
+            <div class="desc">초보자는 리롤덱/보통 난이도부터, 숙련자는 고밸류 운영덱을 선택하면 됩니다.</div>
+          </div>
+          <div class="btns">
+            <button class="btn" id="randomBtn">오늘의 운명 덱 뽑기</button>
+            <button class="btn secondary" id="reloadBtn">수치 데이터 새로고침</button>
+          </div>
+        </div>
+        <div class="box">
+          <h2>🔎 검색 엔진 개선사항</h2>
+          <div class="status" id="dataStatus"><b>내장 DB 사용 중</b><br>한글 표시명과 검색용 별칭을 우선 적용했습니다. 새로고침 버튼은 HP/AD 같은 수치만 최신 원본에서 보강합니다.</div>
+          <div class="search-help">검색 예시: <b>징크스</b>, <b>미포</b>, <b>아우솔</b>, <b>jhin</b>, <b>암흑의 별</b>, <b>도전자</b>, <b>앞라인</b>, <b>물리</b>, <b>5코</b>, <b>ㅈㅋㅅ</b></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="panel-title"><h2>🧩 챔피언 데이터베이스</h2><span>검색어와 필터 조건을 동시에 적용합니다.</span></div>
+    <section class="controls">
+      <input id="q" placeholder="챔피언/시너지/역할/데미지 검색 예: 징크스, jinx, 미포, 암흑의 별, 물리, 3코" autocomplete="off" />
+      <select id="costFilter"><option value="all">전체 코스트</option><option value="1">1코스트</option><option value="2">2코스트</option><option value="3">3코스트</option><option value="4">4코스트</option><option value="5">5코스트</option></select>
+      <select id="traitFilter"><option value="all">전체 시너지</option></select>
+      <select id="damageFilter"><option value="all">전체 데미지</option><option value="AD">물리 AD</option><option value="AP">마법 AP</option><option value="Hybrid">혼합</option><option value="Utility">유틸/탱커</option></select>
+      <select id="favFilter"><option value="all">전체 보기</option><option value="fav">찜한 챔피언만</option></select>
+      <select id="sortFilter"><option value="cost">코스트순</option><option value="name">한글 이름순</option><option value="trait">시너지순</option></select>
+    </section>
+    <div class="toolbar"><span class="result-count" id="champResultCount"></span><button class="mini-btn" id="clearChampBtn">검색 초기화</button></div>
+    <div class="grid" id="champGrid"></div>
+    <div class="empty" id="champEmpty">🔍 조건에 맞는 챔피언이 없습니다.<br>검색어를 줄이거나 코스트/시너지/데미지 필터를 풀어보세요.</div>
+
+    <div class="panel-title"><h2>⚔️ 추천 덱 조합</h2><span>덱 이름, 핵심 기물, 스타일, 데미지 타입으로 검색됩니다.</span></div>
+    <section class="controls comp-controls">
+      <input id="compQ" placeholder="덱/기물 검색 예: 암흑의 별, 피오라, 리롤, AP, 미포" autocomplete="off" />
+      <select id="styleFilter"><option value="all">전체 스타일</option><option value="리롤덱">리롤덱</option><option value="운영덱">운영덱</option><option value="패스트8">패스트8</option><option value="고밸류">고밸류</option></select>
+      <select id="compDamageFilter"><option value="all">전체 데미지</option><option value="AD">물리 AD</option><option value="AP">마법 AP</option><option value="Hybrid">혼합</option></select>
+      <select id="compFavFilter"><option value="all">전체 보기</option><option value="fav">찜한 덱만</option></select>
+    </section>
+    <div class="toolbar"><span class="result-count" id="compResultCount"></span><button class="mini-btn" id="clearCompBtn">검색 초기화</button></div>
+    <div class="comp-grid" id="compGrid"></div>
+    <div class="empty" id="compEmpty">🔍 조건에 맞는 추천 덱 조합이 없습니다.<br>검색어를 줄이거나 필터를 풀어보세요.</div>
+
+    <div class="note">※ 시즌/패치에 따라 세부 수치와 밸런스는 바뀔 수 있습니다. 이 파일은 빠른 탐색용 DB이며, 한글 검색 품질을 위해 챔피언명·별칭·시너지명을 별도로 매핑했습니다.</div>
+  </main>
+
+<script>
+const CDRAGON_URL = 'https://raw.communitydragon.org/latest/cdragon/tft/ko_kr.json';
+const LS_CHAMPS = 'tft_set17_favorite_champions_ko_v2';
+const LS_COMPS = 'tft_set17_favorite_comps_ko_v2';
+const TRAIT_KO = {
+  "N.O.V.A.": "노바",
+  "Anima": "애니마",
+  "Primordian": "프리모디언",
+  "Rogue": "도적",
+  "Dark Star": "암흑의 별",
+  "Brawler": "싸움꾼",
+  "Fateweaver": "운명술사",
+  "Timebreaker": "시간파괴자",
+  "Sniper": "저격수",
+  "Arbiter": "중재자",
+  "Vanguard": "선봉대",
+  "Shepherd": "셰퍼드",
+  "Replicator": "복제자",
+  "Space Groove": "스페이스 그루브",
+  "Meeple": "미플",
+  "Bastion": "요새",
+  "Challenger": "도전자",
+  "Marauder": "약탈자",
+  "Psionic": "사이오닉",
+  "Voyager": "보이저",
+  "Conduit": "도관",
+  "Gun Goddess": "총의 여신",
+  "Gun Goddess-1": "총의 여신",
+  "Redeemer": "구원자",
+  "Mecha": "메카",
+  "Oracle": "예언자",
+  "Dark Lady": "어둠의 여인",
+  "Party Animal": "파티 애니멀",
+  "Divine Duelist": "신성 결투가",
+  "Factory New": "신제품",
+  "Eradicator": "말살자",
+  "Bulwark": "방벽",
+  "Commander": "사령관",
+  "Doomer": "파멸자"
+};
+const ROLE_KO = {
+  "Frontline": "앞라인",
+  "Midline": "중간라인",
+  "Backline": "뒷라인",
+  "—": "미확인"
+};
+const DAMAGE_KO = {
+  "AD": "물리",
+  "AP": "마법",
+  "Hybrid": "혼합",
+  "Utility": "유틸",
+  "True": "고정"
+};
+const TRAIT_ALIAS = {
+  "Anima":["동물특공대","애니마스쿼드"], "Dark Star":["다크스타","암별"], "Space Groove":["스그","스페이스그루브"], "N.O.V.A.":["노바","nova"],
+  "Brawler":["브롤러","싸움꾼"], "Sniper":["스나이퍼","저격"], "Challenger":["도전자"], "Vanguard":["뱅가드","선봉대"], "Bastion":["요새"],
+  "Rogue":["로그","도적"], "Fateweaver":["운명술사","운명"], "Timebreaker":["시간파괴자","타임브레이커"], "Meeple":["미플"],
+  "Primordian":["원시","태고","프리모디언"], "Psionic":["사이오닉","초능력"], "Voyager":["보이저","항해자"], "Conduit":["도관","컨듀잇"],
+  "Marauder":["약탈자"], "Shepherd":["셰퍼드","양치기"], "Replicator":["복제자"], "Arbiter":["중재자","심판자"], "Mecha":["메카","메카닉"],
+  "Oracle":["예언자"], "Redeemer":["구원자"], "Gun Goddess":["총의여신","총의 여신"], "Dark Lady":["어둠의여인","어둠의 여인"],
+  "Party Animal":["파티애니멀"], "Divine Duelist":["신성결투가","결투가"], "Factory New":["신제품"], "Eradicator":["말살자"], "Bulwark":["방벽"], "Commander":["사령관"], "Doomer":["파멸자"]
+};
+const championFallback = [
+  {
+    "name": "Aatrox",
+    "cost": 1,
+    "traits": [
+      "N.O.V.A.",
+      "Bastion"
+    ],
+    "role": "Frontline",
+    "damage": "AD",
+    "abilityName": "Heal & Strike",
+    "ability": "Heal, then deal physical damage. N.O.V.A. Strike cleaves the battlefield and knocks enemies up.",
+    "koName": "아트록스",
+    "aliases": [],
+    "traitKo": [
+      "노바",
+      "요새"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "물리",
+    "abilityNameKo": "회복과 일격",
+    "abilityKo": "체력을 회복한 뒤 물리 피해를 줍니다. 노바 타격으로 전장을 가르며 적을 띄웁니다."
+  },
+  {
+    "name": "Briar",
+    "cost": 1,
+    "traits": [
+      "Anima",
+      "Primordian",
+      "Rogue"
+    ],
+    "role": "Midline",
+    "damage": "AD",
+    "abilityName": "Fish Frenzy",
+    "ability": "Gains Attack Speed based on missing Health and deals increased physical damage to tank targets.",
+    "koName": "브라이어",
+    "aliases": [],
+    "traitKo": [
+      "애니마",
+      "프리모디언",
+      "도적"
+    ],
+    "roleKo": "중간라인",
+    "damageKo": "물리",
+    "abilityNameKo": "물고기 광란",
+    "abilityKo": "잃은 체력에 비례해 공격 속도가 증가하고, 탱커에게 더 강한 물리 피해를 줍니다."
+  },
+  {
+    "name": "Caitlyn",
+    "cost": 1,
+    "traits": [
+      "N.O.V.A.",
+      "Fateweaver"
+    ],
+    "role": "Backline",
+    "damage": "AD",
+    "abilityName": "Aim For The Head",
+    "ability": "Attacks can fire empowered Headshots. N.O.V.A. Strike marks enemies and executes a Headshot when they drop low.",
+    "koName": "케이틀린",
+    "aliases": [],
+    "traitKo": [
+      "노바",
+      "운명술사"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "물리",
+    "abilityNameKo": "정조준 헤드샷",
+    "abilityKo": "강화된 헤드샷을 발사합니다. 노바 타격으로 적을 표식하고 체력이 낮아지면 헤드샷을 실행합니다."
+  },
+  {
+    "name": "Cho'Gath",
+    "cost": 1,
+    "traits": [
+      "Dark Star",
+      "Brawler"
+    ],
+    "role": "Frontline",
+    "damage": "AP",
+    "abilityName": "Accretion",
+    "ability": "Deals magic damage to a low-health enemy and permanently gains max Health, with extra gain on kill.",
+    "koName": "초가스",
+    "aliases": [
+      "초가스",
+      "초가쓰",
+      "chogath"
+    ],
+    "traitKo": [
+      "암흑의 별",
+      "싸움꾼"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "마법",
+    "abilityNameKo": "강착",
+    "abilityKo": "체력이 낮은 적에게 마법 피해를 주고 최대 체력을 영구적으로 얻습니다. 처치 시 추가로 증가합니다."
+  },
+  {
+    "name": "Ezreal",
+    "cost": 1,
+    "traits": [
+      "Timebreaker",
+      "Sniper"
+    ],
+    "role": "Backline",
+    "damage": "AD",
+    "abilityName": "Chrono Shot",
+    "ability": "Fires a physical-damage shot from the backline. Works naturally with Sniper positioning.",
+    "koName": "이즈리얼",
+    "aliases": [],
+    "traitKo": [
+      "시간파괴자",
+      "저격수"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "물리",
+    "abilityNameKo": "시공 탄환",
+    "abilityKo": "후방에서 강한 물리 탄환을 발사합니다. 저격수 배치와 잘 맞는 원거리 딜러입니다."
+  },
+  {
+    "name": "Leona",
+    "cost": 1,
+    "traits": [
+      "Arbiter",
+      "Vanguard"
+    ],
+    "role": "Frontline",
+    "damage": "Utility",
+    "abilityName": "Solar Guard",
+    "ability": "Defensive frontline spell built around durability, shield or mitigation.",
+    "koName": "레오나",
+    "aliases": [],
+    "traitKo": [
+      "중재자",
+      "선봉대"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "유틸",
+    "abilityNameKo": "태양 방어",
+    "abilityKo": "앞라인에서 버티는 방어형 스킬입니다. 보호막 또는 피해 감소 중심으로 아군 진형을 지킵니다."
+  },
+  {
+    "name": "Lissandra",
+    "cost": 1,
+    "traits": [
+      "Dark Star",
+      "Shepherd",
+      "Replicator"
+    ],
+    "role": "Backline",
+    "damage": "AP",
+    "abilityName": "Dark Matter",
+    "ability": "Throws a shard at the current target, dealing magic damage and exploding near the impact point.",
+    "koName": "리산드라",
+    "aliases": [],
+    "traitKo": [
+      "암흑의 별",
+      "셰퍼드",
+      "복제자"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "마법",
+    "abilityNameKo": "암흑 물질",
+    "abilityKo": "대상에게 어둠 조각을 던져 마법 피해를 주고, 충돌 지점 주변으로 폭발 피해를 줍니다."
+  },
+  {
+    "name": "Nasus",
+    "cost": 1,
+    "traits": [
+      "Space Groove",
+      "Vanguard"
+    ],
+    "role": "Frontline",
+    "damage": "AP",
+    "abilityName": "Groovin' Susan",
+    "ability": "Transforms, gains max Health, enters Space Groove and deals magic damage around him each second.",
+    "koName": "나서스",
+    "aliases": [],
+    "traitKo": [
+      "스페이스 그루브",
+      "선봉대"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "마법",
+    "abilityNameKo": "그루브 수잔",
+    "abilityKo": "변신해 최대 체력을 얻고 스페이스 그루브 상태가 되며, 주변 적에게 지속 마법 피해를 줍니다."
+  },
+  {
+    "name": "Poppy",
+    "cost": 1,
+    "traits": [
+      "Meeple",
+      "Bastion"
+    ],
+    "role": "Frontline",
+    "damage": "Utility",
+    "abilityName": "Huddle Up!",
+    "ability": "Gains a shield and grants Armor/MR to nearby allies. Meep bonus grants extra shields.",
+    "koName": "뽀삐",
+    "aliases": [],
+    "traitKo": [
+      "미플",
+      "요새"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "유틸",
+    "abilityNameKo": "모여라!",
+    "abilityKo": "보호막을 얻고 주변 아군에게 방어력과 마법 저항력을 제공합니다. 미플 보너스와 함께 보호막 효율이 좋아집니다."
+  },
+  {
+    "name": "Rek'Sai",
+    "cost": 1,
+    "traits": [
+      "Primordian",
+      "Brawler"
+    ],
+    "role": "Frontline",
+    "damage": "AP",
+    "abilityName": "Upheaval",
+    "ability": "Heals, then briefly knocks up adjacent enemies and deals magic damage.",
+    "koName": "렉사이",
+    "aliases": [
+      "렉사이",
+      "reksai"
+    ],
+    "traitKo": [
+      "프리모디언",
+      "싸움꾼"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "마법",
+    "abilityNameKo": "지각 변동",
+    "abilityKo": "체력을 회복한 뒤 인접한 적을 잠시 띄우고 마법 피해를 줍니다."
+  },
+  {
+    "name": "Talon",
+    "cost": 1,
+    "traits": [
+      "Stargazer",
+      "Rogue"
+    ],
+    "role": "Midline",
+    "damage": "AD",
+    "abilityName": "Diviner's Judgment",
+    "ability": "Stabs the target, applies a long physical bleed, then leaps to a high-percent-Health enemy.",
+    "koName": "탈론",
+    "aliases": [],
+    "traitKo": [
+      "Stargazer",
+      "도적"
+    ],
+    "roleKo": "중간라인",
+    "damageKo": "물리",
+    "abilityNameKo": "예언자의 심판",
+    "abilityKo": "대상을 찔러 긴 물리 출혈 피해를 남긴 뒤, 체력 비율이 높은 적에게 도약합니다."
+  },
+  {
+    "name": "Teemo",
+    "cost": 1,
+    "traits": [
+      "Space Groove",
+      "Shepherd"
+    ],
+    "role": "Backline",
+    "damage": "AP",
+    "abilityName": "Double Time",
+    "ability": "Attacks apply stacking magic damage. Active grants high Attack Speed for several attacks.",
+    "koName": "티모",
+    "aliases": [],
+    "traitKo": [
+      "스페이스 그루브",
+      "셰퍼드"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "마법",
+    "abilityNameKo": "더블 타임",
+    "abilityKo": "공격마다 중첩 마법 피해를 남깁니다. 사용 시 여러 번의 공격 동안 공격 속도가 크게 증가합니다."
+  },
+  {
+    "name": "Twisted Fate",
+    "cost": 1,
+    "traits": [
+      "Stargazer",
+      "Fateweaver"
+    ],
+    "role": "Backline",
+    "damage": "AP",
+    "abilityName": "Fate's Gambit",
+    "ability": "Draws a random-value card and deals magic damage. Overkill damage can bounce to a nearby enemy.",
+    "koName": "트위스티드 페이트",
+    "aliases": [
+      "트페",
+      "티페",
+      "tf"
+    ],
+    "traitKo": [
+      "Stargazer",
+      "운명술사"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "마법",
+    "abilityNameKo": "운명의 도박",
+    "abilityKo": "무작위 카드로 마법 피해를 줍니다. 초과 피해는 근처 적에게 튕길 수 있습니다."
+  },
+  {
+    "name": "Veigar",
+    "cost": 1,
+    "traits": [
+      "Meeple",
+      "Replicator"
+    ],
+    "role": "Backline",
+    "damage": "AP",
+    "abilityName": "Meepteor Shower",
+    "ability": "Calls down a Meepteor on the target. Meep bonus adds mini Meepteors to nearby targets.",
+    "koName": "베이가",
+    "aliases": [],
+    "traitKo": [
+      "미플",
+      "복제자"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "마법",
+    "abilityNameKo": "미플 운석",
+    "abilityKo": "대상에게 운석을 떨어뜨립니다. 미플 보너스가 있으면 주변 적에게 작은 운석이 추가됩니다."
+  },
+  {
+    "name": "Akali",
+    "cost": 2,
+    "traits": [
+      "N.O.V.A.",
+      "Marauder"
+    ],
+    "role": "Midline",
+    "damage": "AD",
+    "abilityName": "Star Strike",
+    "ability": "Repositions and throws piercing kunai. Kunai deal physical damage and reduce Armor, stronger on crit.",
+    "koName": "아칼리",
+    "aliases": [],
+    "traitKo": [
+      "노바",
+      "약탈자"
+    ],
+    "roleKo": "중간라인",
+    "damageKo": "물리",
+    "abilityNameKo": "별의 일격",
+    "abilityKo": "위치를 바꾸며 관통하는 단검을 던집니다. 단검은 물리 피해와 방어력 감소를 주고, 치명타 시 더 강합니다."
+  },
+  {
+    "name": "Bel'Veth",
+    "cost": 2,
+    "traits": [
+      "Primordian",
+      "Challenger",
+      "Marauder"
+    ],
+    "role": "Frontline",
+    "damage": "AD",
+    "abilityName": "Tidal Slashes",
+    "ability": "Unleashes a flurry of slashes on the current target, dealing repeated physical damage.",
+    "koName": "벨베스",
+    "aliases": [
+      "벨베스",
+      "벨베쓰",
+      "belveth"
+    ],
+    "traitKo": [
+      "프리모디언",
+      "도전자",
+      "약탈자"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "물리",
+    "abilityNameKo": "해일 베기",
+    "abilityKo": "현재 대상에게 연속 베기를 날려 반복적인 물리 피해를 줍니다."
+  },
+  {
+    "name": "Gnar",
+    "cost": 2,
+    "traits": [
+      "Meeple",
+      "Sniper"
+    ],
+    "role": "Backline",
+    "damage": "AD",
+    "abilityName": "Slingshot Maneuver",
+    "ability": "Every fifth attack launches a returning boomerang. Meep bonus adds Meeps that attack alongside him.",
+    "koName": "나르",
+    "aliases": [],
+    "traitKo": [
+      "미플",
+      "저격수"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "물리",
+    "abilityNameKo": "부메랑 기동",
+    "abilityKo": "다섯 번째 공격마다 돌아오는 부메랑을 던집니다. 미플 보너스가 있으면 미플이 함께 공격합니다."
+  },
+  {
+    "name": "Gragas",
+    "cost": 2,
+    "traits": [
+      "Psionic",
+      "Brawler"
+    ],
+    "role": "Frontline",
+    "damage": "AP",
+    "abilityName": "Chemical Rage",
+    "ability": "Heals over time, then deals magic damage around the target and Chills enemies.",
+    "koName": "그라가스",
+    "aliases": [],
+    "traitKo": [
+      "사이오닉",
+      "싸움꾼"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "마법",
+    "abilityNameKo": "화학적 분노",
+    "abilityKo": "시간에 걸쳐 체력을 회복한 뒤 대상 주변에 마법 피해를 주고 적을 둔화시킵니다."
+  },
+  {
+    "name": "Gwen",
+    "cost": 2,
+    "traits": [
+      "Space Groove",
+      "Rogue"
+    ],
+    "role": "Midline",
+    "damage": "AP",
+    "abilityName": "Dance n' Dice",
+    "ability": "Attacks deal magic damage. Dashes and snips low-percent-Health enemies, resetting on kill.",
+    "koName": "그웬",
+    "aliases": [],
+    "traitKo": [
+      "스페이스 그루브",
+      "도적"
+    ],
+    "roleKo": "중간라인",
+    "damageKo": "마법",
+    "abilityNameKo": "춤추는 가위",
+    "abilityKo": "공격에 마법 피해가 붙습니다. 체력 비율이 낮은 적에게 돌진해 가위질하고, 처치 시 다시 사용할 수 있습니다."
+  },
+  {
+    "name": "Jax",
+    "cost": 2,
+    "traits": [
+      "Stargazer",
+      "Bastion"
+    ],
+    "role": "Frontline",
+    "damage": "AP",
+    "abilityName": "Counter Star-ike",
+    "ability": "Enters a defensive stance, gains shield and damage reduction, then strikes and stuns nearby enemies.",
+    "koName": "잭스",
+    "aliases": [],
+    "traitKo": [
+      "Stargazer",
+      "요새"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "마법",
+    "abilityNameKo": "반격 태세",
+    "abilityKo": "방어 태세에 들어가 보호막과 피해 감소를 얻고, 주변 적을 타격해 기절시킵니다."
+  },
+  {
+    "name": "Jinx",
+    "cost": 2,
+    "traits": [
+      "Anima",
+      "Challenger"
+    ],
+    "role": "Backline",
+    "damage": "AD",
+    "abilityName": "Fishbones!",
+    "ability": "Fires a cone barrage of bullets, each dealing physical damage to the first target hit.",
+    "koName": "징크스",
+    "aliases": [],
+    "traitKo": [
+      "애니마",
+      "도전자"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "물리",
+    "abilityNameKo": "피시본즈",
+    "abilityKo": "로켓 런처로 부채꼴 탄막을 발사해 처음 맞는 적에게 물리 피해를 줍니다."
+  },
+  {
+    "name": "Meepsie",
+    "cost": 2,
+    "traits": [
+      "Meeple",
+      "Shepherd",
+      "Voyager"
+    ],
+    "role": "Frontline",
+    "damage": "AP",
+    "abilityName": "Meep Impact",
+    "ability": "Heals, slams the target, knocks up, and sends meepwaves through the target row.",
+    "koName": "밉시",
+    "aliases": [
+      "밉시",
+      "미프시",
+      "meep"
+    ],
+    "traitKo": [
+      "미플",
+      "셰퍼드",
+      "보이저"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "마법",
+    "abilityNameKo": "미플 충돌",
+    "abilityKo": "체력을 회복하고 대상을 내려쳐 띄운 뒤, 대상 행을 따라 파동을 보냅니다."
+  },
+  {
+    "name": "Milio",
+    "cost": 2,
+    "traits": [
+      "Timebreaker",
+      "Fateweaver"
+    ],
+    "role": "Backline",
+    "damage": "AP",
+    "abilityName": "ULTRA MEGA TIME KICK",
+    "ability": "Kicks a bouncing ball that deals magic damage. Each bounce can continue with halved odds.",
+    "koName": "밀리오",
+    "aliases": [],
+    "traitKo": [
+      "시간파괴자",
+      "운명술사"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "마법",
+    "abilityNameKo": "초거대 시공 킥",
+    "abilityKo": "튀는 공을 차서 마법 피해를 줍니다. 공은 확률적으로 계속 튕기며 피해를 이어갑니다."
+  },
+  {
+    "name": "Mordekaiser",
+    "cost": 2,
+    "traits": [
+      "Dark Star",
+      "Conduit",
+      "Vanguard"
+    ],
+    "role": "Frontline",
+    "damage": "AP",
+    "abilityName": "Indestructible",
+    "ability": "Gains shield, repeatedly gains more shield and deals magic damage nearby, then heals from remaining shield.",
+    "koName": "모데카이저",
+    "aliases": [
+      "모데",
+      "모데카이저"
+    ],
+    "traitKo": [
+      "암흑의 별",
+      "도관",
+      "선봉대"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "마법",
+    "abilityNameKo": "불멸",
+    "abilityKo": "보호막을 얻고 주변에 반복 마법 피해를 줍니다. 남은 보호막 일부를 체력으로 회복합니다."
+  },
+  {
+    "name": "Pantheon",
+    "cost": 2,
+    "traits": [
+      "Timebreaker",
+      "Brawler",
+      "Replicator"
+    ],
+    "role": "Frontline",
+    "damage": "AD",
+    "abilityName": "Advanced Defences",
+    "ability": "Gains a shield and durability, while dealing physical damage each second in a cone.",
+    "koName": "판테온",
+    "aliases": [],
+    "traitKo": [
+      "시간파괴자",
+      "싸움꾼",
+      "복제자"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "물리",
+    "abilityNameKo": "고급 방어",
+    "abilityKo": "보호막과 내구력을 얻고, 전방 부채꼴 범위에 지속 물리 피해를 줍니다."
+  },
+  {
+    "name": "Pyke",
+    "cost": 2,
+    "traits": [
+      "Psionic",
+      "Voyager"
+    ],
+    "role": "Midline",
+    "damage": "AD",
+    "abilityName": "Marked for Death",
+    "ability": "Throws a harpoon, pulls the first enemy hit, teleports behind them and cleaves for physical damage.",
+    "koName": "파이크",
+    "aliases": [],
+    "traitKo": [
+      "사이오닉",
+      "보이저"
+    ],
+    "roleKo": "중간라인",
+    "damageKo": "물리",
+    "abilityNameKo": "죽음의 표식",
+    "abilityKo": "작살을 던져 첫 적을 끌어오고 뒤로 이동한 뒤, 베기 공격으로 물리 피해를 줍니다."
+  },
+  {
+    "name": "Zoe",
+    "cost": 2,
+    "traits": [
+      "Arbiter",
+      "Conduit"
+    ],
+    "role": "Backline",
+    "damage": "AP",
+    "abilityName": "Paddle Star",
+    "ability": "Fires a star that damages enemies it passes through, then redirects to a distant enemy several times.",
+    "koName": "조이",
+    "aliases": [],
+    "traitKo": [
+      "중재자",
+      "도관"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "마법",
+    "abilityNameKo": "통통별",
+    "abilityKo": "별을 발사해 지나가는 적에게 피해를 주고, 멀리 있는 적에게 여러 번 방향을 바꿔 날아갑니다."
+  },
+  {
+    "name": "Aurora",
+    "cost": 3,
+    "traits": [
+      "Anima",
+      "Voyager"
+    ],
+    "role": "Backline",
+    "damage": "AP",
+    "abilityName": "Hopped-Up Hacks",
+    "ability": "Opens a rift, hacks enemies, deals magic damage and stores part of incoming damage as true damage.",
+    "koName": "오로라",
+    "aliases": [],
+    "traitKo": [
+      "애니마",
+      "보이저"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "마법",
+    "abilityNameKo": "해킹 균열",
+    "abilityKo": "균열을 열어 적을 해킹하고 마법 피해를 줍니다. 받은 피해 일부를 고정 피해로 저장합니다."
+  },
+  {
+    "name": "Diana",
+    "cost": 3,
+    "traits": [
+      "Arbiter",
+      "Challenger"
+    ],
+    "role": "Midline",
+    "damage": "AP",
+    "abilityName": "Pale Cascade",
+    "ability": "Attacks deal bonus magic damage. Active grants shield and orbiting magic-damage orbs.",
+    "koName": "다이애나",
+    "aliases": [],
+    "traitKo": [
+      "중재자",
+      "도전자"
+    ],
+    "roleKo": "중간라인",
+    "damageKo": "마법",
+    "abilityNameKo": "은빛 가호",
+    "abilityKo": "공격에 추가 마법 피해가 붙습니다. 사용 시 보호막을 얻고 주위를 도는 구체로 마법 피해를 줍니다."
+  },
+  {
+    "name": "Fizz",
+    "cost": 3,
+    "traits": [
+      "Meeple",
+      "Rogue"
+    ],
+    "role": "Midline",
+    "damage": "AP",
+    "abilityName": "Playful Strike",
+    "ability": "Mobile Rogue-style damage dealer that dives into vulnerable targets.",
+    "koName": "피즈",
+    "aliases": [],
+    "traitKo": [
+      "미플",
+      "도적"
+    ],
+    "roleKo": "중간라인",
+    "damageKo": "마법",
+    "abilityNameKo": "장난스러운 일격",
+    "abilityKo": "취약한 적에게 파고드는 기동형 도적 딜러입니다. 후열 압박에 강합니다."
+  },
+  {
+    "name": "Illaoi",
+    "cost": 3,
+    "traits": [
+      "Anima",
+      "Vanguard",
+      "Shepherd"
+    ],
+    "role": "Frontline",
+    "damage": "Utility",
+    "abilityName": "Tentacle Slam",
+    "ability": "Durable frontline unit that supports Shepherd and Anima boards.",
+    "koName": "일라오이",
+    "aliases": [],
+    "traitKo": [
+      "애니마",
+      "선봉대",
+      "셰퍼드"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "유틸",
+    "abilityNameKo": "촉수 강타",
+    "abilityKo": "튼튼한 앞라인 유닛입니다. 애니마와 셰퍼드 조합에서 탱킹과 보조 역할을 맡습니다."
+  },
+  {
+    "name": "Kai'Sa",
+    "cost": 3,
+    "traits": [
+      "Dark Star",
+      "Rogue"
+    ],
+    "role": "Backline",
+    "damage": "Hybrid",
+    "abilityName": "Void Barrage",
+    "ability": "Dark Star/Rogue carry option with burst damage pressure.",
+    "koName": "카이사",
+    "aliases": [
+      "카이사",
+      "kaisa"
+    ],
+    "traitKo": [
+      "암흑의 별",
+      "도적"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "혼합",
+    "abilityNameKo": "공허 포화",
+    "abilityKo": "암흑의 별·도적 계열의 폭발형 딜러입니다. 순간 화력으로 핵심 대상을 압박합니다."
+  },
+  {
+    "name": "Lulu",
+    "cost": 3,
+    "traits": [
+      "Stargazer",
+      "Replicator"
+    ],
+    "role": "Backline",
+    "damage": "Utility",
+    "abilityName": "Cosmic Whimsy",
+    "ability": "Support caster that pairs with Replicator and Stargazer boards.",
+    "koName": "룰루",
+    "aliases": [],
+    "traitKo": [
+      "Stargazer",
+      "복제자"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "유틸",
+    "abilityNameKo": "우주 변덕",
+    "abilityKo": "복제자와 별 관측자 조합에 어울리는 보조 마법사입니다. 아군 보조와 유틸에 강점이 있습니다."
+  },
+  {
+    "name": "Maokai",
+    "cost": 3,
+    "traits": [
+      "N.O.V.A.",
+      "Brawler"
+    ],
+    "role": "Frontline",
+    "damage": "Utility",
+    "abilityName": "Nature Surge",
+    "ability": "Brawler frontline for N.O.V.A. boards.",
+    "koName": "마오카이",
+    "aliases": [],
+    "traitKo": [
+      "노바",
+      "싸움꾼"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "유틸",
+    "abilityNameKo": "자연 쇄도",
+    "abilityKo": "노바 조합의 싸움꾼 앞라인입니다. 버티면서 노바 기물의 시간을 벌어줍니다."
+  },
+  {
+    "name": "Miss Fortune",
+    "cost": 3,
+    "traits": [
+      "Gun Goddess",
+      "Gun Goddess-1"
+    ],
+    "role": "Backline",
+    "damage": "Hybrid",
+    "abilityName": "Gun Goddess Arsenal",
+    "ability": "Choose a mode when fielded. Mode determines her ability and trait behavior.",
+    "koName": "미스 포츈",
+    "aliases": [
+      "미포",
+      "mf"
+    ],
+    "traitKo": [
+      "총의 여신",
+      "총의 여신"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "혼합",
+    "abilityNameKo": "총의 여신 무기고",
+    "abilityKo": "전장에 배치할 때 모드를 선택합니다. 선택한 모드에 따라 스킬과 특성 운용이 달라집니다."
+  },
+  {
+    "name": "Ornn",
+    "cost": 3,
+    "traits": [
+      "Space Groove",
+      "Bastion"
+    ],
+    "role": "Frontline",
+    "damage": "AP",
+    "abilityName": "Disco Inferno",
+    "ability": "Forges a temporary completed item, gains shield, breathes fire and enters Space Groove after shielding.",
+    "koName": "오른",
+    "aliases": [],
+    "traitKo": [
+      "스페이스 그루브",
+      "요새"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "마법",
+    "abilityNameKo": "디스코 지옥불",
+    "abilityKo": "완성 아이템을 임시로 만들고 보호막을 얻은 뒤 불길로 마법 피해를 줍니다."
+  },
+  {
+    "name": "Rhaast",
+    "cost": 3,
+    "traits": [
+      "Redeemer"
+    ],
+    "role": "Frontline",
+    "damage": "AD",
+    "abilityName": "Divine Scythe",
+    "ability": "Gains durability and heals, then slashes forward, dealing physical damage and knocking enemies up.",
+    "koName": "라아스트",
+    "aliases": [],
+    "traitKo": [
+      "구원자"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "물리",
+    "abilityNameKo": "신성한 낫",
+    "abilityKo": "내구력과 회복을 얻고 전방을 베어 물리 피해를 주며 적을 띄웁니다."
+  },
+  {
+    "name": "Samira",
+    "cost": 3,
+    "traits": [
+      "Space Groove",
+      "Sniper"
+    ],
+    "role": "Backline",
+    "damage": "AD",
+    "abilityName": "Jump and Jive",
+    "ability": "Shoots knocked-up enemies and enters Space Groove. Active fires a volley and knocks up the target.",
+    "koName": "사미라",
+    "aliases": [],
+    "traitKo": [
+      "스페이스 그루브",
+      "저격수"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "물리",
+    "abilityNameKo": "점프 앤 자이브",
+    "abilityKo": "띄워진 적을 쏘고 스페이스 그루브 상태가 됩니다. 사용 시 연사와 에어본을 함께 넣습니다."
+  },
+  {
+    "name": "Urgot",
+    "cost": 3,
+    "traits": [
+      "Mecha",
+      "Brawler",
+      "Marauder"
+    ],
+    "role": "Frontline",
+    "damage": "AD",
+    "abilityName": "Mecha Crush",
+    "ability": "Brawler/Marauder Mecha bruiser built for sustained frontline damage.",
+    "koName": "우르곳",
+    "aliases": [],
+    "traitKo": [
+      "메카",
+      "싸움꾼",
+      "약탈자"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "물리",
+    "abilityNameKo": "메카 분쇄",
+    "abilityKo": "싸움꾼·약탈자 계열의 메카 브루저입니다. 앞라인에서 지속 물리 피해를 넣습니다."
+  },
+  {
+    "name": "Viktor",
+    "cost": 3,
+    "traits": [
+      "Psionic",
+      "Conduit"
+    ],
+    "role": "Backline",
+    "damage": "AP",
+    "abilityName": "Arcane Vector",
+    "ability": "Psionic Conduit caster with magic-damage utility.",
+    "koName": "빅토르",
+    "aliases": [],
+    "traitKo": [
+      "사이오닉",
+      "도관"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "마법",
+    "abilityNameKo": "비전 벡터",
+    "abilityKo": "사이오닉·도관 계열의 마법 딜러입니다. 마법 피해와 유틸로 전투를 보조합니다."
+  },
+  {
+    "name": "Aurelion Sol",
+    "cost": 4,
+    "traits": [
+      "Mecha",
+      "Conduit"
+    ],
+    "role": "Backline",
+    "damage": "AP",
+    "abilityName": "Celestial Beam",
+    "ability": "Mecha Conduit magic carry.",
+    "koName": "아우렐리온 솔",
+    "aliases": [
+      "아우솔",
+      "솔"
+    ],
+    "traitKo": [
+      "메카",
+      "도관"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "마법",
+    "abilityNameKo": "천상의 광선",
+    "abilityKo": "메카·도관 계열의 4코스트 마법 캐리입니다. 후방에서 광역 마법 화력을 담당합니다."
+  },
+  {
+    "name": "Corki",
+    "cost": 4,
+    "traits": [
+      "Meeple",
+      "Fateweaver"
+    ],
+    "role": "Backline",
+    "damage": "AD",
+    "abilityName": "Asteroid Blaster",
+    "ability": "Strafes and unleashes missiles split between the target and nearby enemies. Meep bonus adds explosive shots.",
+    "koName": "코르키",
+    "aliases": [],
+    "traitKo": [
+      "미플",
+      "운명술사"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "물리",
+    "abilityNameKo": "소행성 블래스터",
+    "abilityKo": "비행하며 미사일을 발사합니다. 대상과 주변 적에게 물리 피해를 나누어 주고, 미플 보너스가 있으면 폭발탄이 추가됩니다."
+  },
+  {
+    "name": "Karma",
+    "cost": 4,
+    "traits": [
+      "Dark Star",
+      "Voyager"
+    ],
+    "role": "Backline",
+    "damage": "AP",
+    "abilityName": "Dark Voyager",
+    "ability": "Dark Star AP carry/support option for Fast 8 boards.",
+    "koName": "카르마",
+    "aliases": [],
+    "traitKo": [
+      "암흑의 별",
+      "보이저"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "마법",
+    "abilityNameKo": "암흑 항해자",
+    "abilityKo": "암흑의 별·보이저 계열의 후반 AP 캐리 겸 보조 유닛입니다."
+  },
+  {
+    "name": "Kindred",
+    "cost": 4,
+    "traits": [
+      "N.O.V.A.",
+      "Challenger"
+    ],
+    "role": "Backline",
+    "damage": "AD",
+    "abilityName": "Twin Mark",
+    "ability": "Jumps and fires arrows at multiple targets. N.O.V.A. Strike adds damage amplification and marks enemies.",
+    "koName": "킨드레드",
+    "aliases": [],
+    "traitKo": [
+      "노바",
+      "도전자"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "물리",
+    "abilityNameKo": "쌍둥이 표식",
+    "abilityKo": "도약하며 여러 대상에게 화살을 발사합니다. 노바 타격으로 피해 증폭과 표식을 부여합니다."
+  },
+  {
+    "name": "LeBlanc",
+    "cost": 4,
+    "traits": [
+      "Arbiter",
+      "Shepherd"
+    ],
+    "role": "Backline",
+    "damage": "AP",
+    "abilityName": "Fracture Reality",
+    "ability": "Attacks deal magic damage. Summons clones that attack alongside her and fire a final magic bolt.",
+    "koName": "르블랑",
+    "aliases": [
+      "르블랑",
+      "lb"
+    ],
+    "traitKo": [
+      "중재자",
+      "셰퍼드"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "마법",
+    "abilityNameKo": "현실 균열",
+    "abilityKo": "공격에 마법 피해가 붙고, 함께 공격하는 분신을 소환한 뒤 마지막 마법탄을 발사합니다."
+  },
+  {
+    "name": "Master Yi",
+    "cost": 4,
+    "traits": [
+      "Psionic",
+      "Marauder"
+    ],
+    "role": "Midline",
+    "damage": "AD",
+    "abilityName": "Psi Strikes",
+    "ability": "Every third attack double-slashes. Active enters Psi-State with Omnivamp, Attack Speed and psychic projections.",
+    "koName": "마스터 이",
+    "aliases": [
+      "마이",
+      "마스터이",
+      "yi"
+    ],
+    "traitKo": [
+      "사이오닉",
+      "약탈자"
+    ],
+    "roleKo": "중간라인",
+    "damageKo": "물리",
+    "abilityNameKo": "사이오닉 일격",
+    "abilityKo": "세 번째 공격마다 이중 베기를 합니다. 사용 시 흡혈, 공격 속도, 사이오닉 투사체가 강화됩니다."
+  },
+  {
+    "name": "Morgana",
+    "cost": 4,
+    "traits": [
+      "Dark Lady"
+    ],
+    "role": "Midline",
+    "damage": "AP",
+    "abilityName": "Dark Form",
+    "ability": "Transforms, gains Health, tethers to nearby champions, damages enemies and restores injured allies.",
+    "koName": "모르가나",
+    "aliases": [],
+    "traitKo": [
+      "어둠의 여인"
+    ],
+    "roleKo": "중간라인",
+    "damageKo": "마법",
+    "abilityNameKo": "어둠의 형상",
+    "abilityKo": "변신해 체력을 얻고 주변 챔피언과 연결됩니다. 적에게 피해를 주고 다친 아군을 회복합니다."
+  },
+  {
+    "name": "Nami",
+    "cost": 4,
+    "traits": [
+      "Space Groove",
+      "Replicator"
+    ],
+    "role": "Backline",
+    "damage": "AP",
+    "abilityName": "Bubble Pop",
+    "ability": "Space Groove Replicator caster with bouncing magic-damage pressure.",
+    "koName": "나미",
+    "aliases": [],
+    "traitKo": [
+      "스페이스 그루브",
+      "복제자"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "마법",
+    "abilityNameKo": "버블 팝",
+    "abilityKo": "스페이스 그루브·복제자 계열의 마법 딜러입니다. 튕기는 마법 피해로 후열을 압박합니다."
+  },
+  {
+    "name": "Nunu & Willump",
+    "cost": 4,
+    "traits": [
+      "Stargazer",
+      "Vanguard"
+    ],
+    "role": "Frontline",
+    "damage": "Utility",
+    "abilityName": "Cosmic Snowball",
+    "ability": "High-cost Vanguard frontline for Stargazer boards.",
+    "koName": "누누와 윌럼프",
+    "aliases": [
+      "누누",
+      "윌럼프"
+    ],
+    "traitKo": [
+      "Stargazer",
+      "선봉대"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "유틸",
+    "abilityNameKo": "우주 눈덩이",
+    "abilityKo": "별 관측자·선봉대 계열의 고코스트 앞라인입니다. 튼튼하게 버티는 역할입니다."
+  },
+  {
+    "name": "Rammus",
+    "cost": 4,
+    "traits": [
+      "Meeple",
+      "Bastion"
+    ],
+    "role": "Frontline",
+    "damage": "Utility",
+    "abilityName": "Defensive Curl",
+    "ability": "Meeple/Bastion frontline tank.",
+    "koName": "람머스",
+    "aliases": [],
+    "traitKo": [
+      "미플",
+      "요새"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "유틸",
+    "abilityNameKo": "방어 태세",
+    "abilityKo": "미플·요새 계열의 앞라인 탱커입니다. 방어 기반으로 시간을 벌어줍니다."
+  },
+  {
+    "name": "Riven",
+    "cost": 4,
+    "traits": [
+      "Timebreaker",
+      "Rogue"
+    ],
+    "role": "Midline",
+    "damage": "AD",
+    "abilityName": "Blade Time",
+    "ability": "Mobile Timebreaker Rogue carry option.",
+    "koName": "리븐",
+    "aliases": [],
+    "traitKo": [
+      "시간파괴자",
+      "도적"
+    ],
+    "roleKo": "중간라인",
+    "damageKo": "물리",
+    "abilityNameKo": "시간의 검",
+    "abilityKo": "시간파괴자·도적 계열의 기동형 물리 캐리입니다. 빠르게 파고들어 후열을 위협합니다."
+  },
+  {
+    "name": "Tahm Kench",
+    "cost": 4,
+    "traits": [
+      "Oracle",
+      "Brawler"
+    ],
+    "role": "Frontline",
+    "damage": "Utility",
+    "abilityName": "Oracle Appetite",
+    "ability": "Durable Brawler unique unit for high-value boards.",
+    "koName": "탐 켄치",
+    "aliases": [
+      "탐켄치",
+      "탐켄치",
+      "탐"
+    ],
+    "traitKo": [
+      "예언자",
+      "싸움꾼"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "유틸",
+    "abilityNameKo": "예언자의 식욕",
+    "abilityKo": "예언자·싸움꾼 계열의 특수 앞라인입니다. 고밸류 조합에서 튼튼한 탱커 역할을 합니다."
+  },
+  {
+    "name": "The Mighty Mech",
+    "cost": 4,
+    "traits": [
+      "Mecha",
+      "Voyager"
+    ],
+    "role": "Frontline",
+    "damage": "Hybrid",
+    "abilityName": "Mighty Mecha",
+    "ability": "Mecha/Voyager special unit used in high-value compositions.",
+    "koName": "마이티 메크",
+    "aliases": [
+      "마이티메크",
+      "메크",
+      "메카"
+    ],
+    "traitKo": [
+      "메카",
+      "보이저"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "혼합",
+    "abilityNameKo": "마이티 메카",
+    "abilityKo": "메카·보이저 계열의 특수 유닛입니다. 후반 고밸류 조합에서 전환 핵심으로 사용합니다."
+  },
+  {
+    "name": "Xayah",
+    "cost": 4,
+    "traits": [
+      "Stargazer",
+      "Sniper"
+    ],
+    "role": "Backline",
+    "damage": "AD",
+    "abilityName": "Star Feathers",
+    "ability": "Stargazer Sniper AD carry.",
+    "koName": "자야",
+    "aliases": [
+      "자야"
+    ],
+    "traitKo": [
+      "Stargazer",
+      "저격수"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "물리",
+    "abilityNameKo": "별의 깃털",
+    "abilityKo": "별 관측자·저격수 계열의 4코스트 물리 캐리입니다. 안정적인 후방 지속 딜이 장점입니다."
+  },
+  {
+    "name": "Bard",
+    "cost": 5,
+    "traits": [
+      "Meeple",
+      "Conduit"
+    ],
+    "role": "Backline",
+    "damage": "AP",
+    "abilityName": "Ultra Friendly Object",
+    "ability": "Summons a UFO over the target, dealing repeated magic damage and sometimes abducting killed enemies as copies.",
+    "koName": "바드",
+    "aliases": [],
+    "traitKo": [
+      "미플",
+      "도관"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "마법",
+    "abilityNameKo": "초친절 UFO",
+    "abilityKo": "대상 위에 UFO를 소환해 반복 마법 피해를 줍니다. 처치한 적을 복사체로 납치할 수 있습니다."
+  },
+  {
+    "name": "Blitzcrank",
+    "cost": 5,
+    "traits": [
+      "Party Animal",
+      "Space Groove",
+      "Vanguard"
+    ],
+    "role": "Frontline",
+    "damage": "AP",
+    "abilityName": "Party Crasher",
+    "ability": "Calls lightning bolts, then throws the target into a disco ball to deal large AoE magic damage.",
+    "koName": "블리츠크랭크",
+    "aliases": [
+      "블츠",
+      "블리츠"
+    ],
+    "traitKo": [
+      "파티 애니멀",
+      "스페이스 그루브",
+      "선봉대"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "마법",
+    "abilityNameKo": "파티 난입",
+    "abilityKo": "번개를 부른 뒤 대상을 디스코 볼로 던져 넓은 범위에 큰 마법 피해를 줍니다."
+  },
+  {
+    "name": "Fiora",
+    "cost": 5,
+    "traits": [
+      "Divine Duelist",
+      "Anima",
+      "Marauder"
+    ],
+    "role": "Midline",
+    "damage": "Hybrid",
+    "abilityName": "Perfect Bladework",
+    "ability": "Reveals vitals, dashes to strike them for bonus true damage, and heals from damage dealt.",
+    "koName": "피오라",
+    "aliases": [],
+    "traitKo": [
+      "신성 결투가",
+      "애니마",
+      "약탈자"
+    ],
+    "roleKo": "중간라인",
+    "damageKo": "혼합",
+    "abilityNameKo": "완벽한 검술",
+    "abilityKo": "급소를 드러내고 돌진해 고정 피해를 섞은 강한 공격을 합니다. 피해량에 따라 회복합니다."
+  },
+  {
+    "name": "Graves",
+    "cost": 5,
+    "traits": [
+      "Factory New"
+    ],
+    "role": "Backline",
+    "damage": "AD",
+    "abilityName": "Factory New",
+    "ability": "Unique high-cost AD unit.",
+    "koName": "그레이브즈",
+    "aliases": [],
+    "traitKo": [
+      "신제품"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "물리",
+    "abilityNameKo": "신제품",
+    "abilityKo": "5코스트 고유 물리 딜러입니다. 후반 보조 딜 또는 고밸류 슬롯으로 사용합니다."
+  },
+  {
+    "name": "Jhin",
+    "cost": 5,
+    "traits": [
+      "Dark Star",
+      "Eradicator",
+      "Sniper"
+    ],
+    "role": "Backline",
+    "damage": "AD",
+    "abilityName": "Curtain Call",
+    "ability": "Dark Star Sniper 5-cost carry.",
+    "koName": "진",
+    "aliases": [
+      "진",
+      "jhin"
+    ],
+    "traitKo": [
+      "암흑의 별",
+      "말살자",
+      "저격수"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "물리",
+    "abilityNameKo": "커튼 콜",
+    "abilityKo": "암흑의 별·저격수 계열 5코스트 물리 캐리입니다. 후방에서 강한 한 방을 넣습니다."
+  },
+  {
+    "name": "Shen",
+    "cost": 5,
+    "traits": [
+      "Bulwark",
+      "Bastion"
+    ],
+    "role": "Frontline",
+    "damage": "Utility",
+    "abilityName": "Bulwark Relic",
+    "ability": "Summons or empowers a relic that shields and boosts adjacent allies.",
+    "koName": "쉔",
+    "aliases": [],
+    "traitKo": [
+      "방벽",
+      "요새"
+    ],
+    "roleKo": "앞라인",
+    "damageKo": "유틸",
+    "abilityNameKo": "방벽 유물",
+    "abilityKo": "유물을 소환하거나 강화해 주변 아군에게 보호막과 보조 효과를 제공합니다."
+  },
+  {
+    "name": "Sona",
+    "cost": 5,
+    "traits": [
+      "Commander",
+      "Psionic",
+      "Shepherd"
+    ],
+    "role": "Backline",
+    "damage": "Utility",
+    "abilityName": "Command Performance",
+    "ability": "Commander/Psionic/Shepherd 5-cost support.",
+    "koName": "소나",
+    "aliases": [],
+    "traitKo": [
+      "사령관",
+      "사이오닉",
+      "셰퍼드"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "유틸",
+    "abilityNameKo": "지휘 공연",
+    "abilityKo": "사령관·사이오닉·셰퍼드 계열의 5코스트 보조 유닛입니다. 후반 조합 안정성을 높입니다."
+  },
+  {
+    "name": "Vex",
+    "cost": 5,
+    "traits": [
+      "Doomer"
+    ],
+    "role": "Backline",
+    "damage": "AP",
+    "abilityName": "Doom",
+    "ability": "Unique AP Doomer 5-cost unit.",
+    "koName": "벡스",
+    "aliases": [
+      "벡스"
+    ],
+    "traitKo": [
+      "파멸자"
+    ],
+    "roleKo": "뒷라인",
+    "damageKo": "마법",
+    "abilityNameKo": "파멸",
+    "abilityKo": "파멸자 계열 5코스트 마법 딜러입니다. 후반 AP 고밸류 슬롯으로 사용합니다."
+  },
+  {
+    "name": "Zed",
+    "cost": 5,
+    "traits": [
+      "Galaxy Hunter"
+    ],
+    "role": "Midline",
+    "damage": "AD",
+    "abilityName": "Quantum Clone",
+    "ability": "Creates a clone behind the target. Clone inherits items, stats and current Health, and can cast Quantum Clone.",
+    "koName": "제드",
+    "aliases": [],
+    "traitKo": [
+      "Galaxy Hunter"
+    ],
+    "roleKo": "중간라인",
+    "damageKo": "물리",
+    "abilityNameKo": "그림자 처형",
+    "abilityKo": "기동형 5코스트 물리 암살 딜러입니다. 후열 접근과 마무리에 강점이 있습니다."
+  }
+];
+const comps = [
+  {
+    "id": "dark-stars",
+    "name": "Dark Stars",
+    "style": "패스트8",
+    "damage": "Hybrid",
+    "difficulty": "보통",
+    "desc": "Dark Star 4~6을 중심으로 Jhin/Karma를 후반 캐리로 세우는 안정형 운영덱. 앞라인과 후열 밸런스가 좋습니다.",
+    "core": [
+      "Cho'Gath",
+      "Mordekaiser",
+      "Kai'Sa",
+      "Aurelion Sol",
+      "Karma",
+      "Tahm Kench",
+      "The Mighty Mech",
+      "Jhin"
+    ],
+    "koName": "암흑의 별 고밸류",
+    "damageKo": "혼합",
+    "coreKo": [
+      "초가스",
+      "모데카이저",
+      "카이사",
+      "아우렐리온 솔",
+      "카르마",
+      "탐 켄치",
+      "마이티 메크",
+      "진"
+    ],
+    "aliases": [
+      "다크스타",
+      "암별",
+      "jhin",
+      "진",
+      "karma",
+      "카르마"
+    ],
+    "descKo": "암흑의 별 4~6 시너지를 중심으로 진과 카르마를 후반 캐리로 세우는 안정형 운영덱입니다. 앞라인과 후열 밸런스가 좋습니다."
+  },
+  {
+    "id": "primordian-challengers",
+    "name": "Primordian Challengers",
+    "style": "리롤덱",
+    "damage": "AD",
+    "difficulty": "쉬움",
+    "desc": "Briar/Rek'Sai/Bel'Veth/Jinx를 초중반부터 모아 스노우볼을 굴리는 AD 중심 리롤덱입니다.",
+    "core": [
+      "Briar",
+      "Rek'Sai",
+      "Akali",
+      "Bel'Veth",
+      "Jinx",
+      "Maokai",
+      "Rhaast",
+      "Kindred"
+    ],
+    "koName": "프리모디언 도전자 리롤",
+    "damageKo": "물리",
+    "coreKo": [
+      "브라이어",
+      "렉사이",
+      "아칼리",
+      "벨베스",
+      "징크스",
+      "마오카이",
+      "라아스트",
+      "킨드레드"
+    ],
+    "aliases": [
+      "원시",
+      "태고",
+      "브라이어",
+      "렉사이",
+      "벨베스",
+      "징크스"
+    ],
+    "descKo": "브라이어·렉사이·벨베스·징크스를 초중반부터 모아 스노우볼을 굴리는 물리 중심 리롤덱입니다."
+  },
+  {
+    "id": "shepherd-fast8",
+    "name": "Shepherd Fast 8",
+    "style": "운영덱",
+    "damage": "AP",
+    "difficulty": "보통",
+    "desc": "Shepherd 소환체와 Karma/LeBlanc/Sona 밸류를 활용하는 AP 운영덱. 레벨 8 이후 완성도가 올라갑니다.",
+    "core": [
+      "Karma",
+      "LeBlanc",
+      "Illaoi",
+      "Sona",
+      "The Mighty Mech",
+      "Meepsie",
+      "Leona",
+      "Lissandra",
+      "Teemo"
+    ],
+    "koName": "셰퍼드 패스트8",
+    "damageKo": "마법",
+    "coreKo": [
+      "카르마",
+      "르블랑",
+      "일라오이",
+      "소나",
+      "마이티 메크",
+      "밉시",
+      "레오나",
+      "리산드라",
+      "티모"
+    ],
+    "aliases": [
+      "양치기",
+      "카르마",
+      "르블랑",
+      "소나",
+      "패스트8"
+    ],
+    "descKo": "셰퍼드 소환체와 카르마·르블랑·소나 밸류를 활용하는 마법 운영덱입니다. 레벨 8 이후 완성도가 올라갑니다."
+  },
+  {
+    "id": "meepteors",
+    "name": "Meepteors",
+    "style": "리롤덱",
+    "damage": "AP",
+    "difficulty": "쉬움",
+    "desc": "Lissandra·Poppy·Veigar를 기반으로 Meeple/Replicator를 맞추는 저코스트 AP 리롤덱입니다.",
+    "core": [
+      "Lissandra",
+      "Poppy",
+      "Veigar",
+      "Bard",
+      "Rammus",
+      "Illaoi",
+      "Meepsie",
+      "Mordekaiser"
+    ],
+    "koName": "미플 운석 리롤",
+    "damageKo": "마법",
+    "coreKo": [
+      "리산드라",
+      "뽀삐",
+      "베이가",
+      "바드",
+      "람머스",
+      "일라오이",
+      "밉시",
+      "모데카이저"
+    ],
+    "aliases": [
+      "미플",
+      "운석",
+      "베이가",
+      "뽀삐",
+      "리산드라"
+    ],
+    "descKo": "리산드라·뽀삐·베이가를 기반으로 미플·복제자 시너지를 맞추는 저코스트 마법 리롤덱입니다."
+  },
+  {
+    "id": "tentacles-missiles",
+    "name": "Tentacles and Missiles",
+    "style": "운영덱",
+    "damage": "Hybrid",
+    "difficulty": "보통",
+    "desc": "Illaoi와 Dark Star 라인을 섞어 앞라인을 버티고 Kai'Sa/Jhin/Karma로 마무리하는 혼합 운영덱입니다.",
+    "core": [
+      "Karma",
+      "Illaoi",
+      "Kai'Sa",
+      "Jhin",
+      "Riven",
+      "Meepsie",
+      "Mordekaiser",
+      "Cho'Gath",
+      "Lissandra"
+    ],
+    "koName": "촉수와 미사일",
+    "damageKo": "혼합",
+    "coreKo": [
+      "카르마",
+      "일라오이",
+      "카이사",
+      "진",
+      "리븐",
+      "밉시",
+      "모데카이저",
+      "초가스",
+      "리산드라"
+    ],
+    "aliases": [
+      "일라오이",
+      "카이사",
+      "진",
+      "카르마",
+      "미사일",
+      "촉수"
+    ],
+    "descKo": "일라오이와 암흑의 별 라인을 섞어 앞라인을 버티고 카이사·진·카르마로 마무리하는 혼합 운영덱입니다."
+  },
+  {
+    "id": "space-groove",
+    "name": "Space Groove Vanguard",
+    "style": "고밸류",
+    "damage": "Hybrid",
+    "difficulty": "보통",
+    "desc": "Space Groove 유지력과 Blitzcrank/Nami/Ornn 밸류를 활용하는 후반형 덱입니다.",
+    "core": [
+      "Teemo",
+      "Nasus",
+      "Gwen",
+      "Samira",
+      "Ornn",
+      "Nami",
+      "Blitzcrank"
+    ],
+    "koName": "스페이스 그루브 선봉대",
+    "damageKo": "혼합",
+    "coreKo": [
+      "티모",
+      "나서스",
+      "그웬",
+      "사미라",
+      "오른",
+      "나미",
+      "블리츠크랭크"
+    ],
+    "aliases": [
+      "스그",
+      "스페이스그루브",
+      "블리츠",
+      "블리츠크랭크",
+      "나미",
+      "오른"
+    ],
+    "descKo": "스페이스 그루브 유지력과 블리츠크랭크·나미·오른 밸류를 활용하는 후반형 덱입니다."
+  },
+  {
+    "id": "nova-kindred",
+    "name": "N.O.V.A. Kindred",
+    "style": "운영덱",
+    "damage": "AD",
+    "difficulty": "보통",
+    "desc": "N.O.V.A. 파워 서지를 Kindred와 Akali/Jinx 라인에 실어주는 AD 중심 운영덱입니다.",
+    "core": [
+      "Aatrox",
+      "Caitlyn",
+      "Akali",
+      "Maokai",
+      "Kindred",
+      "Jinx",
+      "Bel'Veth",
+      "Shen"
+    ],
+    "koName": "노바 킨드레드",
+    "damageKo": "물리",
+    "coreKo": [
+      "아트록스",
+      "케이틀린",
+      "아칼리",
+      "마오카이",
+      "킨드레드",
+      "징크스",
+      "벨베스",
+      "쉔"
+    ],
+    "aliases": [
+      "노바",
+      "킨드레드",
+      "아칼리",
+      "징크스"
+    ],
+    "descKo": "노바 파워를 킨드레드와 아칼리·징크스 라인에 실어주는 물리 중심 운영덱입니다."
+  },
+  {
+    "id": "psionic-yi",
+    "name": "Psionic Master Yi",
+    "style": "운영덱",
+    "damage": "AD",
+    "difficulty": "어려움",
+    "desc": "Psionic 아이템과 Master Yi를 결합하는 4코스트 중심 운영덱. 아이템 선택과 앞라인 관리가 중요합니다.",
+    "core": [
+      "Pyke",
+      "Gragas",
+      "Viktor",
+      "Master Yi",
+      "Sona",
+      "Tahm Kench",
+      "Mordekaiser"
+    ],
+    "koName": "사이오닉 마스터 이",
+    "damageKo": "물리",
+    "coreKo": [
+      "파이크",
+      "그라가스",
+      "빅토르",
+      "마스터 이",
+      "소나",
+      "탐 켄치",
+      "모데카이저"
+    ],
+    "aliases": [
+      "사이오닉",
+      "마이",
+      "마스터이",
+      "마스터 이"
+    ],
+    "descKo": "사이오닉 아이템과 마스터 이를 결합하는 4코스트 중심 운영덱입니다. 아이템 선택과 앞라인 관리가 중요합니다."
+  },
+  {
+    "id": "jhin-snipers",
+    "name": "Jhin Snipers",
+    "style": "고밸류",
+    "damage": "AD",
+    "difficulty": "보통",
+    "desc": "Sniper 라인과 Dark Star를 결합해 후방 캐리 Jhin/Xayah/Samira를 보호하는 덱입니다.",
+    "core": [
+      "Ezreal",
+      "Gnar",
+      "Samira",
+      "Xayah",
+      "Jhin",
+      "Mordekaiser",
+      "Cho'Gath",
+      "Shen"
+    ],
+    "koName": "진 저격수",
+    "damageKo": "물리",
+    "coreKo": [
+      "이즈리얼",
+      "나르",
+      "사미라",
+      "자야",
+      "진",
+      "모데카이저",
+      "초가스",
+      "쉔"
+    ],
+    "aliases": [
+      "진",
+      "저격수",
+      "자야",
+      "사미라"
+    ],
+    "descKo": "저격수 라인과 암흑의 별을 결합해 후방 캐리 진·자야·사미라를 보호하는 덱입니다."
+  },
+  {
+    "id": "arbiters",
+    "name": "Arbiter Control",
+    "style": "운영덱",
+    "damage": "AP",
+    "difficulty": "보통",
+    "desc": "Leona·Diana·LeBlanc·Zoe 기반의 AP/유틸 컨트롤 덱입니다.",
+    "core": [
+      "Leona",
+      "Zoe",
+      "Diana",
+      "LeBlanc",
+      "Morgana",
+      "Shen",
+      "Sona"
+    ],
+    "koName": "중재자 컨트롤",
+    "damageKo": "마법",
+    "coreKo": [
+      "레오나",
+      "조이",
+      "다이애나",
+      "르블랑",
+      "모르가나",
+      "쉔",
+      "소나"
+    ],
+    "aliases": [
+      "중재자",
+      "심판자",
+      "레오나",
+      "다이애나",
+      "르블랑",
+      "조이"
+    ],
+    "descKo": "레오나·다이애나·르블랑·조이 기반의 마법/유틸 컨트롤 덱입니다."
+  },
+  {
+    "id": "mecha-voyager",
+    "name": "Mecha Voyager",
+    "style": "고밸류",
+    "damage": "Hybrid",
+    "difficulty": "어려움",
+    "desc": "Aurelion Sol, Urgot, The Mighty Mech를 중심으로 Mecha 전환 밸류를 노리는 후반 덱입니다.",
+    "core": [
+      "Urgot",
+      "Aurelion Sol",
+      "The Mighty Mech",
+      "Corki",
+      "Karma",
+      "Tahm Kench",
+      "Blitzcrank"
+    ],
+    "koName": "메카 보이저",
+    "damageKo": "혼합",
+    "coreKo": [
+      "우르곳",
+      "아우렐리온 솔",
+      "마이티 메크",
+      "코르키",
+      "카르마",
+      "탐 켄치",
+      "블리츠크랭크"
+    ],
+    "aliases": [
+      "메카",
+      "보이저",
+      "아우솔",
+      "아우렐리온 솔",
+      "우르곳",
+      "마이티 메크"
+    ],
+    "descKo": "아우렐리온 솔·우르곳·마이티 메크를 중심으로 메카 전환 밸류를 노리는 후반 덱입니다."
+  },
+  {
+    "id": "fiora-anima",
+    "name": "Fiora Anima",
+    "style": "고밸류",
+    "damage": "Hybrid",
+    "difficulty": "어려움",
+    "desc": "Anima 누적 보상과 Fiora 5코스트 캐리력을 결합하는 고점형 덱입니다.",
+    "core": [
+      "Briar",
+      "Jinx",
+      "Aurora",
+      "Illaoi",
+      "Fiora",
+      "Akali",
+      "Rhaast",
+      "Shen"
+    ],
+    "koName": "피오라 애니마",
+    "damageKo": "혼합",
+    "coreKo": [
+      "브라이어",
+      "징크스",
+      "오로라",
+      "일라오이",
+      "피오라",
+      "아칼리",
+      "라아스트",
+      "쉔"
+    ],
+    "aliases": [
+      "피오라",
+      "애니마",
+      "동물특공대"
+    ],
+    "descKo": "애니마 누적 보상과 피오라 5코스트 캐리력을 결합하는 고점형 덱입니다."
+  }
+];
+let champions = championFallback.map(c => ({...c, hp:'—', ad:'—', mana:'—', range:'—'}));
+let favoriteChampions = new Set(JSON.parse(localStorage.getItem(LS_CHAMPS) || '[]'));
+let favoriteComps = new Set(JSON.parse(localStorage.getItem(LS_COMPS) || '[]'));
+const $ = id => document.getElementById(id);
+const clean = v => String(v ?? '').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();
+const norm = v => clean(v).toLowerCase().normalize('NFC').replace(/[^a-z0-9가-힣ㄱ-ㅎㅏ-ㅣ]/g,'');
+const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+function choseong(str){
+  return clean(str).split('').map(ch => {
+    const code = ch.charCodeAt(0) - 44032;
+    if(code >= 0 && code <= 11171) return CHO[Math.floor(code / 588)];
+    return ch;
+  }).join('').replace(/\s+/g,'');
+}
+function searchBlob(parts){
+  const raw = parts.flat(Infinity).filter(Boolean).join(' ');
+  return { raw, n:norm(raw), c:choseong(raw) };
+}
+function tokenCost(c){return [`${c.cost}코`,`${c.cost}코스트`,`${c.cost}cost`,`${c.cost}원`,`${c.cost} 비용`];}
+function championSearchBlob(c){
+  return searchBlob([
+    c.name, c.koName, c.aliases, c.traits, c.traitKo, c.traits.flatMap(t => TRAIT_ALIAS[t] || []), c.role, c.roleKo, c.damage, c.damageKo,
+    c.abilityName, c.abilityNameKo, c.ability, c.abilityKo, tokenCost(c),
+    c.damage === 'AD' ? ['물리','ad','attack','공격력'] : [],
+    c.damage === 'AP' ? ['마법','ap','주문력','magic'] : [],
+    c.damage === 'Hybrid' ? ['혼합','하이브리드','hybrid'] : [],
+    c.damage === 'Utility' ? ['유틸','탱커','보조','utility'] : []
+  ]);
+}
+function compSearchBlob(c){
+  return searchBlob([c.name,c.koName,c.aliases,c.style,c.damage,c.damageKo,c.difficulty,c.desc,c.descKo,c.core,c.coreKo]);
+}
+function queryMatch(blob, q){
+  const words = clean(q).split(/\s+/).filter(Boolean);
+  if(!words.length) return true;
+  return words.every(w => {
+    const nw = norm(w), cw = choseong(w);
+    const initialOnly = /^[ㄱ-ㅎ]+$/.test(clean(w));
+    if(!nw && !cw) return true;
+    return (nw && blob.n.includes(nw)) || (initialOnly && cw && blob.c.includes(cw)) || blob.raw.toLowerCase().includes(w.toLowerCase());
+  });
+}
+function first(v){return Array.isArray(v) ? v[0] : v;}
+function asMainStat(v){
+  if(v === undefined || v === null || v === '') return '—';
+  if(Array.isArray(v)) return v[0] ?? '—';
+  if(typeof v === 'string' && v.includes('/')) return v.split('/')[0].trim();
+  return String(v);
+}
+function findSet17(data){
+  const buckets = [data?.sets, data?.setData, data?.setsData].filter(Array.isArray);
+  for(const arr of buckets){
+    const found = arr.find(s => Number(s.number) === 17 || /TFTSet17/i.test(String(s.apiName || s.mutator || s.name || '')));
+    if(found) return found;
+  }
+  return null;
+}
+function mapUnit(u){
+  const stats = u.stats || u.statsByStar || {};
+  const ability = u.ability || first(u.abilities) || {};
+  const name = clean(u.name || u.displayName || u.characterName || u.apiName);
+  return {
+    name,
+    cost: Number(u.cost ?? u.price ?? 0),
+    traits: Array.isArray(u.traits) ? u.traits.map(clean).filter(Boolean) : [],
+    hp: asMainStat(stats.hp ?? stats.health ?? stats.Health ?? stats.mHP ?? u.health),
+    ad: asMainStat(stats.damage ?? stats.attackDamage ?? stats.attackdamage ?? stats.Damage ?? u.damage),
+    mana: asMainStat((stats.initialMana !== undefined || stats.mana !== undefined) ? `${stats.initialMana ?? 0} / ${stats.mana ?? '—'}` : (u.mana ?? ability.mana)),
+    range: asMainStat(stats.range ?? u.range)
+  };
+}
+async function loadLiveData(){
+  $('dataStatus').innerHTML = '<span class="loader"></span> 수치 데이터를 불러오는 중...';
+  try{
+    const res = await fetch(CDRAGON_URL, {cache:'no-store'});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const set17 = findSet17(data);
+    const unitsRaw = set17?.champions || set17?.units || [];
+    if(!Array.isArray(unitsRaw) || !unitsRaw.length) throw new Error('Set 17 champion array not found');
+    const liveUnits = unitsRaw.map(mapUnit).filter(u => u.cost >= 1 && u.cost <= 5 && u.name && !/apex primordian/i.test(u.name));
+    const liveByName = new Map(liveUnits.map(u => [norm(u.name), u]));
+    champions = championFallback.map(base => {
+      const live = liveByName.get(norm(base.name));
+      if(!live) return {...base, hp:'—', ad:'—', mana:'—', range:'—'};
+      return {...base, hp:live.hp, ad:live.ad, mana:live.mana, range:live.range};
+    });
+    $('dataStatus').innerHTML = `<b>수치 보강 완료</b><br>HP/AD/마나/사거리 수치를 원본 데이터에서 보강했습니다. 한글 이름·설명·검색 별칭은 내장 DB를 유지합니다.`;
+  }catch(err){
+    champions = championFallback.map(c => ({...c, hp:'—', ad:'—', mana:'—', range:'—'}));
+    $('dataStatus').innerHTML = `<b style="color:var(--red)">수치 데이터 로딩 실패</b><br>그래도 한글 DB와 검색 기능은 정상 작동합니다. 사유: ${clean(err.message)}`;
+  }
+  populateTraitFilter(); renderChampions(); renderComps();
+}
+function populateTraitFilter(){
+  const traits = [...new Map(champions.flatMap(c => c.traits.map((t,i)=>[t, c.traitKo?.[i] || TRAIT_KO[t] || t]))).entries()].sort((a,b)=>a[1].localeCompare(b[1],'ko'));
+  $('traitFilter').innerHTML = '<option value="all">전체 시너지</option>' + traits.map(([en,ko]) => `<option value="${en}">${ko} · ${en}</option>`).join('');
+}
+function championCard(c){
+  const fav = favoriteChampions.has(c.name);
+  const traits = c.traits.map((t,i)=>`<span class="trait">${c.traitKo?.[i] || TRAIT_KO[t] || t} <small>${t}</small></span>`).join('');
+  return `<article class="card">
+    <div class="card-head">
+      <div><div class="champ-name">${c.koName || c.name}</div><div class="champ-sub">${c.name}</div><div class="cost">💰 ${c.cost}코스트</div></div>
+      <button class="heart ${fav ? 'active' : ''}" data-champ-heart="${c.name}" title="찜하기">${fav ? '♥' : '♡'}</button>
+    </div>
+    <div class="traits">${traits}</div>
+    <div class="stat-row">
+      <div class="stat"><small>체력</small><b>${c.hp || '—'}</b></div>
+      <div class="stat"><small>공격력</small><b>${c.ad || '—'}</b></div>
+      <div class="stat"><small>피해</small><b>${c.damageKo || DAMAGE_KO[c.damage] || c.damage}</b></div>
+      <div class="stat"><small>포지션</small><b>${c.roleKo || ROLE_KO[c.role] || c.role}</b></div>
+    </div>
+    <div class="ability"><b>${c.abilityNameKo || c.abilityName || '스킬 정보'}</b><p>${c.abilityKo || c.ability || '스킬 설명 없음'}</p></div>
+  </article>`;
+}
+function renderChampions(){
+  const q = $('q').value;
+  const cost = $('costFilter').value;
+  const trait = $('traitFilter').value;
+  const damage = $('damageFilter').value;
+  const favOnly = $('favFilter').value === 'fav';
+  const sort = $('sortFilter').value;
+  let list = champions.filter(c => {
+    const blob = championSearchBlob(c);
+    return queryMatch(blob,q) && (cost === 'all' || String(c.cost) === cost) && (trait === 'all' || c.traits.includes(trait)) && (damage === 'all' || c.damage === damage) && (!favOnly || favoriteChampions.has(c.name));
+  });
+  list.sort((a,b) => {
+    if(sort === 'name') return (a.koName || a.name).localeCompare((b.koName || b.name),'ko');
+    if(sort === 'trait') return ((a.traitKo && a.traitKo[0]) || '').localeCompare(((b.traitKo && b.traitKo[0]) || ''),'ko') || a.cost-b.cost;
+    return a.cost-b.cost || (a.koName || a.name).localeCompare((b.koName || b.name),'ko');
+  });
+  $('champGrid').innerHTML = list.map(championCard).join('');
+  $('champEmpty').style.display = list.length ? 'none' : 'block';
+  $('champCount').textContent = champions.length;
+  $('champResultCount').innerHTML = `검색 결과 <b>${list.length}</b>명 / 전체 ${champions.length}명`;
+}
+function compCard(c){
+  const fav = favoriteComps.has(c.id);
+  return `<article class="card comp">
+    <div class="card-head"><div><div class="name">${c.koName || c.name}</div><div class="sub">${c.name}</div></div><button class="heart ${fav ? 'active' : ''}" data-comp-heart="${c.id}" title="찜하기">${fav ? '♥' : '♡'}</button></div>
+    <div class="meta"><span class="pill">${c.style}</span><span class="pill">${c.damageKo || DAMAGE_KO[c.damage] || c.damage}</span><span class="pill">난이도 ${c.difficulty}</span></div>
+    <p>${c.descKo || c.desc}</p>
+    <div class="units">${(c.coreKo || c.core).map((u,i)=>`<span class="unit">${u}<small style="color:#9da8c1"> ${c.core[i] || ''}</small></span>`).join('')}</div>
+  </article>`;
+}
+function renderComps(){
+  const q = $('compQ').value;
+  const style = $('styleFilter').value;
+  const damage = $('compDamageFilter').value;
+  const favOnly = $('compFavFilter').value === 'fav';
+  const list = comps.filter(c => queryMatch(compSearchBlob(c),q) && (style === 'all' || c.style === style) && (damage === 'all' || c.damage === damage) && (!favOnly || favoriteComps.has(c.id)));
+  $('compGrid').innerHTML = list.map(compCard).join('');
+  $('compEmpty').style.display = list.length ? 'none' : 'block';
+  $('compCount').textContent = comps.length;
+  $('compResultCount').innerHTML = `검색 결과 <b>${list.length}</b>개 / 전체 ${comps.length}개`;
+}
+function randomComp(){
+  const pick = comps[Math.floor(Math.random() * comps.length)];
+  $('fortuneResult').innerHTML = `<div class="name">${pick.koName || pick.name}</div><div class="meta">${pick.style} · ${pick.damageKo || DAMAGE_KO[pick.damage] || pick.damage} 중심 · 난이도 ${pick.difficulty}</div><div class="desc">${pick.descKo || pick.desc}<br><br><b style="color:var(--blue)">핵심 기물:</b> ${(pick.coreKo || pick.core).join(', ')}</div>`;
+}
+function saveFavorites(){
+  localStorage.setItem(LS_CHAMPS, JSON.stringify([...favoriteChampions]));
+  localStorage.setItem(LS_COMPS, JSON.stringify([...favoriteComps]));
+}
+document.addEventListener('click', e => {
+  const ch = e.target.closest('[data-champ-heart]')?.dataset.champHeart;
+  if(ch){favoriteChampions.has(ch) ? favoriteChampions.delete(ch) : favoriteChampions.add(ch); saveFavorites(); renderChampions(); return;}
+  const comp = e.target.closest('[data-comp-heart]')?.dataset.compHeart;
+  if(comp){favoriteComps.has(comp) ? favoriteComps.delete(comp) : favoriteComps.add(comp); saveFavorites(); renderComps(); return;}
+});
+['q','costFilter','traitFilter','damageFilter','favFilter','sortFilter'].forEach(id => $(id).addEventListener('input', renderChampions));
+['compQ','styleFilter','compDamageFilter','compFavFilter'].forEach(id => $(id).addEventListener('input', renderComps));
+$('clearChampBtn').addEventListener('click', () => { $('q').value=''; $('costFilter').value='all'; $('traitFilter').value='all'; $('damageFilter').value='all'; $('favFilter').value='all'; $('sortFilter').value='cost'; renderChampions(); });
+$('clearCompBtn').addEventListener('click', () => { $('compQ').value=''; $('styleFilter').value='all'; $('compDamageFilter').value='all'; $('compFavFilter').value='all'; renderComps(); });
+$('randomBtn').addEventListener('click', randomComp);
+$('reloadBtn').addEventListener('click', loadLiveData);
+populateTraitFilter(); renderChampions(); renderComps(); randomComp();
+</script>
+</body>
+</html>
