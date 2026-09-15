@@ -9,10 +9,14 @@ UI를 붙이기 전에 규칙만 먼저 고정하는 단계라, 이 저장소에
 :domain          Android 의존성이 없는 순수 Kotlin 모듈 (java-library + kotlin-jvm)
   streak/        ○△✕ 판정, △ 유예, 프리즈, 조각        ← streak_sim.py 이식
   plan/          자동 분배와 재분배                     ← allocation.py 이식
+
+:sim             규칙을 60일 돌려보고 표로 찍는 실행기 (application)
 ```
 
-`:domain` 은 Compose 도 Android SDK 도 참조하지 않아 Android SDK 없이 빌드·테스트된다.
+둘 다 Compose 도 Android SDK 도 참조하지 않아 Android SDK 없이 빌드·실행된다.
 Compose UI 모듈(`:app`)은 아직 없다 — `settings.gradle.kts` 의 TODO 참고.
+
+의존 방향은 단방향이다: `:sim` → `:domain`. `:domain` 은 자기를 쓰는 쪽을 모른다.
 
 ## 테스트
 
@@ -25,6 +29,20 @@ Compose UI 모듈(`:app`)은 아직 없다 — `settings.gradle.kts` 의 TODO �
 | `StreakEngineTest` | 22 | `streak_sim.py` 의 `edge_tests()` 를 1:1 이식 |
 | `PlanAllocatorTest` | 16 | `allocation.py` 의 검증 1~7절을 1:1 이식 |
 | `SettlementContractTest` | 7 | 파이썬에 없는 이식 조건 — 정산 멱등성, `Clock` 주입 |
+
+## 규칙을 눈으로 보기
+
+```
+./gradlew :sim:run
+```
+
+수학·영어·국어(필수)와 한국사(선택)로 60일을 돌려서, 하루씩 ○ △ ✕ 판정과
+전체 streak·△ 개수·프리즈·조각이 어떻게 움직이는지 표로 찍는다.
+초기화가 언제 일어나는지, 조각 6개가 프리즈로 바뀌는 순간이 어디인지 그대로 보인다.
+
+씨앗이 고정돼 있어 돌릴 때마다 같은 결과가 나온다. 다른 전개를 보려면 `--args="42"`.
+
+검증이 아니라 관찰용이다 — 규칙이 맞는지는 아래 테스트가 본다.
 
 ## 규칙에 손대지 않았다는 것의 의미
 
