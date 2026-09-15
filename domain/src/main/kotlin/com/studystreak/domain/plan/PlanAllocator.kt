@@ -4,7 +4,12 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import kotlin.math.ceil
 
-/** 밀림 흡수용 예비일 비율 (6.2) */
+/**
+ * 밀림 흡수용 예비일 비율 (6.2).
+ *
+ * 기획 노트가 `[제안]` 으로 남겨둔 값이다 — "15%가 적절한지는 실제로 써보고 조정".
+ * 그래서 [allocate] 가 인자로도 받는다. 기본값은 이 값이라 부르는 쪽이 안 바꾸면 동작이 같다.
+ */
 const val BUFFER_RATIO = 0.15
 
 /** 저장하면 안 되는 입력 (6.2 "막아야 하는 입력") */
@@ -106,12 +111,13 @@ fun allocate(
     weekdays: Set<DayOfWeek>,
     excluded: Set<LocalDate> = emptySet(),
     dailyMax: Int? = null,
+    bufferRatio: Double = BUFFER_RATIO,
 ): Allocation {
     val days = studyDays(start, end, weekdays, excluded)
     val d = days.size
     if (d == 0) throw PlanException("학습 가능일이 0일이다 — 요일 선택이나 기간을 다시 잡아야 한다")
 
-    val b = ceil(d * BUFFER_RATIO).toInt()
+    val b = ceil(d * bufferRatio).toInt()
     val n = d - b
     if (n <= 0) throw PlanException("학습 가능일 ${d}일 중 버퍼 ${b}일을 빼면 배분할 날이 없다")
 
@@ -159,6 +165,22 @@ fun allocate(
 /**
  * [doneThrough] 날짜까지 [doneAmount] 만큼만 했을 때 남은 일정을 다시 편다.
  * 버퍼일부터 채우고, 그래도 모자라면 남은 학습일에 균등 추가한다.
+ *
+ * ### 두 번째부터는 반드시 **원본** [allocation] 으로 부를 것
+ *
+ * [doneAmount] 는 **시작부터의 누적 완료량**이다. 밀릴 때마다 다시 부르되,
+ * 직전 결과([Redistribution.plan])를 다시 [Allocation] 에 담아 넘기면 안 된다.
+ *
+ * 재분배는 못 한 몫을 남은 날에 **더한다.** 그래서 결과 계획의 총합은 총분량보다 커진다.
+ * 그 위에서 또 재분배하면 이미 밀어둔 몫을 한 번 더 세어, 남은 계획이 실제 남은 분량보다
+ * 커진다. 무작위 600건으로 확인했을 때 **연쇄로 부르면 67%에서** 어긋났고,
+ * 원본에서 다시 계산하면 **0%** 였다.
+ *
+ * ```
+ * val plan = allocate(480, …)
+ * val r1 = redistribute(plan, 10일째, doneAmount = 28)    // 누적 28
+ * val r2 = redistribute(plan, 25일째, doneAmount = 95)    // 누적 95 — 원본에서 다시
+ * ```
  */
 fun redistribute(
     allocation: Allocation,

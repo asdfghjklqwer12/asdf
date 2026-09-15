@@ -33,9 +33,9 @@ Compose UI 모듈(`:app`)은 아직 없다 — `settings.gradle.kts` 의 TODO �
 |---|---|---|
 | `StreakEngineTest` | 22 | `streak_sim.py` 의 `edge_tests()` 를 1:1 이식 |
 | `PlanAllocatorTest` | 16 | `allocation.py` 의 검증 1~7절을 1:1 이식 |
-| `SettlementContractTest` | 7 | 파이썬에 없는 이식 조건 — 정산 멱등성, `Clock` 주입 |
-| `StreakBranchTest` | 10 | 파이썬이 코드로는 지나가지만 단언하지 않은 분기 |
-| `PlanBranchTest` | 8 | 같음 — 제외일, 남은 날 없음, 총분량 0 등 |
+| `SettlementContractTest` | 8 | 파이썬에 없는 이식 조건 — 멱등성, `Clock` 주입, 7일 창 |
+| `StreakBranchTest` | 14 | 파이썬이 단언하지 않은 분기 + 30% 경계 |
+| `PlanBranchTest` | 10 | 같음 — 제외일, 남은 날 없음, 연쇄 재분배 등 |
 
 ## 규칙을 눈으로 보기
 
@@ -67,6 +67,11 @@ Compose UI 모듈(`:app`)은 아직 없다 — `settings.gradle.kts` 의 TODO �
   **37,604줄이 완전히 동일**. ○△✕ 네 판정, △발/✕발 초기화, 프리즈 방어, 조각 상한 전부
 - 멱등성: 같은 날짜 재정산 2,892회를 전부 차단하고 상태가 안 바뀌는 것 확인
 
+- 30% 경계 전수 검사: 태스크 1~300개 × 체크 0~전부 **45,450조합 동일**
+- 버퍼 인덱스 공식 전수 검사: 학습 가능일 2~2000일 **동일**
+- 연쇄 재분배 1,200건 **동일**
+
+합쳐서 **10만 줄 넘는 출력을 맞대어 차이가 하나도 없었다.**
 `reference/` 에 원본 파이썬을 넣어뒀으므로 언제든 다시 맞대어 볼 수 있다.
 
 ## 시각 판정

@@ -72,6 +72,45 @@ class StreakBranchTest {
         assertEquals(2, acc.longest, "△만으로는 최장 2일을 못 넘는다")
     }
 
+    // ── 30% 경계 그 자체 ───────────────────────────────────────
+    // 태스크 1~300개 × 체크 0~전부 (45,450조합)를 파이썬과 전수 비교해 같음을 확인했다.
+    // 그중 0.30 에 가장 가까운 조합들을 여기 박아둔다.
+
+    @Test
+    fun `비율이 정확히 30퍼센트면 △다`() {
+        // 나눗셈 결과가 딱 0.30 이 되는 조합들 — 부동소수점이 새면 여기서 터진다
+        for ((checked, total) in listOf(3 to 10, 6 to 20, 9 to 30, 15 to 50, 30 to 100, 60 to 200)) {
+            assertEquals(Mark.PARTIAL, markFor(total, checked), "$checked/$total 는 딱 30%라 △여야 한다")
+        }
+    }
+
+    @Test
+    fun `비율이 30퍼센트를 아주 조금 넘으면 △다`() {
+        for ((checked, total) in listOf(4 to 13, 7 to 23, 10 to 33, 31 to 100)) {
+            assertEquals(Mark.PARTIAL, markFor(total, checked), "$checked/$total")
+        }
+    }
+
+    @Test
+    fun `비율이 30퍼센트에 아주 조금 못 미치면 ✕다`() {
+        for ((checked, total) in listOf(2 to 7, 5 to 17, 11 to 37, 29 to 100, 56 to 200)) {
+            assertEquals(Mark.NONE, markFor(total, checked), "$checked/$total")
+        }
+    }
+
+    @Test
+    fun `태스크가 1개뿐이면 △가 나올 수 없다`() {
+        // 기획 5.2가 지적한 상황 — 전부 아니면 전무다
+        assertEquals(Mark.FULL, markFor(total = 1, checked = 1))
+        assertEquals(Mark.NONE, markFor(total = 1, checked = 0))
+    }
+
+    /** 필수 1과목 · 태스크 [total]개 중 [checked]개를 한 날의 전체 판정 */
+    private fun markFor(total: Int, checked: Int): Mark {
+        val subs = listOf(Subject("과목", required = true, weekdays = everyDay, tasks = total))
+        return engine.settle(Account(), subs, start, mapOf("과목" to checked)).log.mark
+    }
+
     // ── 과목 프리즈 적립과 상한 ─────────────────────────────────
 
     @Test

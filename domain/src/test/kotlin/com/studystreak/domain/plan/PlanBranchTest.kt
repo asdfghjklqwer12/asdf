@@ -107,6 +107,43 @@ class PlanBranchTest {
         assertEquals(a.plan, r.plan, "밀린 몫이 갈 곳이 없어 계획은 그대로다")
     }
 
+    // ── 여러 번 밀렸을 때 ───────────────────────────────────────
+
+    @Test
+    fun `재분배를 반복해도 남은 계획은 실제 남은 분량과 같다`() {
+        // 사용자는 한 번만 밀리지 않는다. 매번 **원본** 계획에서 누적 완료량으로 다시 계산한다.
+        val a = baseCase()
+        val days = a.days
+
+        for ((idx, doneSoFar) in listOf(9 to 28, 24 to 95, 44 to 219)) {
+            val cut = days[idx]
+            val r = redistribute(a, cut, doneAmount = doneSoFar, dailyMax = 10)
+            val remain = days.filter { it.isAfter(cut) }.sumOf { r.plan.getValue(it) }
+
+            assertEquals(480 - doneSoFar, remain, "${idx + 1}일째 누적 ${doneSoFar}p 완료")
+        }
+    }
+
+    @Test
+    fun `직전 재분배 결과 위에 또 재분배하면 분량이 부풀려진다`() {
+        // 이러면 안 된다는 것을 고정해 둔다. 재분배는 못 한 몫을 남은 날에 **더하므로**,
+        // 결과 계획 위에서 또 재분배하면 이미 밀어둔 몫을 한 번 더 센다.
+        val a = baseCase()
+        val days = a.days
+
+        val r1 = redistribute(a, days[9], doneAmount = 28, dailyMax = 10)
+        val chained = redistribute(a.copy(plan = r1.plan), days[24], doneAmount = 95, dailyMax = 10)
+        val fromOriginal = redistribute(a, days[24], doneAmount = 95, dailyMax = 10)
+
+        val cut = days[24]
+        val chainedRemain = days.filter { it.isAfter(cut) }.sumOf { chained.plan.getValue(it) }
+        val correctRemain = days.filter { it.isAfter(cut) }.sumOf { fromOriginal.plan.getValue(it) }
+
+        assertEquals(385, correctRemain, "원본에서 계산하면 480 - 95 = 385")
+        assertEquals(413, chainedRemain, "연쇄로 부르면 28p 더 요구한다 — 1회차 밀림을 두 번 센 것")
+        assertTrue(chainedRemain > correctRemain, "연쇄가 항상 더 많이 요구한다")
+    }
+
     // ── 기본 하루치가 0일 때 ────────────────────────────────────
 
     @Test

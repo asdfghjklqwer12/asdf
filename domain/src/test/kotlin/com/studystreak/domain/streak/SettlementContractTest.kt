@@ -10,6 +10,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
+import kotlin.random.Random
 
 /**
  * 파이썬 검증 38개에는 없지만 이식 조건으로 요구된 두 가지 — 멱등성과 Clock 주입.
@@ -97,6 +98,44 @@ class SettlementContractTest {
         val engine = engineAt("2026-09-09T05:00:00Z")
         assertEquals(LocalDate.of(2026, 9, 9), engine.currentStudyDate(ZoneId.of("Asia/Seoul")))
         assertEquals(LocalDate.of(2026, 9, 8), engine.currentStudyDate(ZoneId.of("America/Los_Angeles")))
+    }
+
+    // ── settle 이 무엇에 기대는가 ─────────────────────────────────
+
+    @Test
+    fun `7일 창 밖의 오래된 로그는 판정에 영향을 주지 않는다`() {
+        // 저장소를 붙일 때 최근 며칠치만 넘겨도 되는지를 정하는 근거다.
+        // 기획 8장이 "streak 계산은 로그 테이블만 보고 하면 되도록" 이라고 한 부분.
+        val engine = engineAt("2026-09-09T12:00:00Z")
+        val subjects = { listOf(Subject("수학", required = true, weekdays = monToFri, tasks = 3)) }
+
+        val keepAll = Account()
+        val pruned = Account()
+        val subsA = subjects()
+        val subsB = subjects()
+
+        // 같은 입력을 양쪽에 먹인다. 한쪽만 오래된 로그를 버린다.
+        val rng = Random(9)
+        val traceA = StringBuilder()
+        val traceB = StringBuilder()
+
+        for (i in 0 until 400) {
+            val date = monday.plusDays(i.toLong())
+            val checked = rng.nextInt(0, 4)
+
+            val a = engine.settle(keepAll, subsA, date, mapOf("수학" to checked))
+            traceA.append("${a.log.mark}/${a.event}/${keepAll.overall}/${keepAll.longest}/${subsA[0].streak}\n")
+
+            val b = engine.settle(pruned, subsB, date, mapOf("수학" to checked))
+            traceB.append("${b.log.mark}/${b.event}/${pruned.overall}/${pruned.longest}/${subsB[0].streak}\n")
+
+            val keepFrom = date.minusDays(StreakRules.WINDOW_DAYS.toLong())
+            pruned.logs.removeAll { it.date < keepFrom }
+        }
+
+        assertEquals(traceA.toString(), traceB.toString(), "오래된 로그를 버려도 판정이 같아야 한다")
+        assertEquals(400, keepAll.logs.size)
+        assertTrue(pruned.logs.size <= StreakRules.WINDOW_DAYS + 1, "실제로 잘려 있어야 의미가 있다")
     }
 
     @Test

@@ -40,18 +40,21 @@
 ./gradlew :domain:test
 ```
 
-63개가 전부 통과해야 한다. 하나라도 깨지면 규칙이 바뀐 것이다.
+70개가 전부 통과해야 한다. 하나라도 깨지면 규칙이 바뀐 것이다.
 
 | 테스트 | 개수 | 성격 |
 |---|---|---|
 | `StreakEngineTest` | 22 | `streak_sim.py` 검증을 1:1 이식 — **건드리지 마라** |
 | `PlanAllocatorTest` | 16 | `allocation.py` 검증을 1:1 이식 — **건드리지 마라** |
-| `SettlementContractTest` | 7 | 멱등성 · `Clock` 주입 |
-| `StreakBranchTest` | 10 | 파이썬이 단언하지 않은 분기 |
-| `PlanBranchTest` | 8 | 파이썬이 단언하지 않은 분기 |
+| `SettlementContractTest` | 8 | 멱등성 · `Clock` 주입 · 7일 창 밖 로그 불변식 |
+| `StreakBranchTest` | 14 | 파이썬이 단언하지 않은 분기 + 30% 경계 |
+| `PlanBranchTest` | 10 | 파이썬이 단언하지 않은 분기 + 연쇄 재분배 |
 
 앞의 38개는 파이썬 검증을 그대로 옮긴 것이다. 이름도 내용도 바꾸지 마라.
-뒤의 25개도 파이썬을 돌려 기대값을 뽑은 것이라 마찬가지다.
+뒤의 32개도 파이썬을 돌려 기대값을 뽑은 것이라 마찬가지다.
+
+**재분배는 반드시 원본 `Allocation` 에서 누적 완료량으로 다시 계산한다.**
+직전 결과 위에 또 하면 분량이 부풀려진다 (`redistribute` KDoc 참고).
 
 ## 규칙을 눈으로 보기
 
@@ -60,6 +63,9 @@
 ./gradlew :sim:run --args="measure"    기획 노트 5.2 숫자 재측정
 ./gradlew :sim:run --args="rates"      완료율에 따른 ○ / △ / ✕ 분포
 ./gradlew :sim:run --args="skips"      빼먹는 날이 섞였을 때 ✕ 빈도
+./gradlew :sim:run --args="tasks"      하루치를 태스크 몇 개로 쪼갤 것인가
+./gradlew :sim:run --args="buffer"     버퍼 비율 튜닝
+./gradlew :sim:run --args="censoring"  측정이 시행 길이에 흔들리는지
 ```
 
 측정에서 나온 것들은 `docs/측정-결과.md` 에 정리돼 있다.
