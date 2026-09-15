@@ -181,3 +181,95 @@ private fun absorbable(
     }
     return absorbed
 }
+
+// ─────────────────────────────────────────────────────────────
+// 3. 프리즈가 실제로 얼마나 막아주는가 (기획 13장 1·2번)
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * 조각 수급과 ✕ 소모를 **같이** 돌려서, 프리즈가 실제 몇 %의 ✕를 막는지 본다.
+ *
+ * 앞의 rates·skips 측정은 프리즈 수입이 0인 상태였다. 실제 사용자는 휴식일에 자발 체크를
+ * 하고 광고도 본다. 그 수급이 ✕ 빈도를 따라잡는지가 "조각 6개"와 "주 3개 상한"이
+ * 적절한지에 대한 진짜 답이다.
+ *
+ * 실행: ./gradlew :sim:run --args="freeze"
+ */
+fun printFreezeCoverage() {
+    val trials = 400
+    val daysPerTrial = 730 // 2년
+    val engine = StreakEngine(Clock.fixed(Instant.parse("2026-09-07T12:00:00Z"), ZoneOffset.UTC))
+    val start = LocalDate.of(2026, 9, 7)
+
+    println("=".repeat(RULE_WIDTH))
+    println("프리즈가 실제로 막아주는 비율 — 조각 수급과 ✕ 소모를 같이 돌린다")
+    println("필수 1과목 · 하루 태스크 3개 · 여는 날 완료율 95% · 설정당 ${trials * daysPerTrial / 1000}천 일")
+    println("=".repeat(RULE_WIDTH))
+
+    for ((restP, adP, label) in listOf(
+        Triple(0.0, 0.0, "아무것도 안 함"),
+        Triple(0.5, 0.0, "휴식일에 절반쯤 자발 체크"),
+        Triple(1.0, 0.0, "휴식일마다 자발 체크"),
+        Triple(0.0, 1.0, "매일 광고 2편"),
+        Triple(1.0, 1.0, "둘 다 최대로"),
+    )) {
+        println()
+        println("$label  (휴식일 체크 ${(restP * 100).toInt()}% · 광고 ${(adP * 100).toInt()}%)")
+        println("-".repeat(RULE_WIDTH))
+        print(cell("안 여는 날", 12))
+        for (h in listOf("✕/월", "막은 비율", "초기화/월", "평균 유지", "조각 낭비")) print(cell(h, 12))
+        println()
+
+        for (skip in listOf(0.05, 0.10, 0.20)) {
+            val rng = Random(31337 + (skip * 100).toInt() + (restP * 10).toInt() * 3 + (adP * 10).toInt())
+            var crosses = 0; var defended = 0; var resets = 0; var wasted = 0
+            val lengths = mutableListOf<Int>()
+
+            repeat(trials) {
+                val acc = Account()
+                val subject = Subject("정석", required = true, weekdays = WEEKDAYS, tasks = 3)
+                val subs = listOf(subject)
+                for (i in 0 until daysPerTrial) {
+                    val date = start.plusDays(i.toLong())
+                    val isStudyDay = subject.studiesOn(date)
+
+                    // 휴식일 자발 체크 (기획 5.4) — 주 3개 상한은 Account 가 알아서 건다
+                    if (!isStudyDay && rng.nextDouble() < restP) {
+                        if (acc.restCheck(date).rejected) wasted++
+                    }
+                    // 보상형 광고 — 하루 2편까지
+                    if (rng.nextDouble() < adP) {
+                        repeat(2) { if (acc.watchAd(date).rejected) wasted++ }
+                    }
+
+                    val skipped = rng.nextDouble() < skip
+                    val checked = if (skipped) 0 else (0 until 3).count { rng.nextDouble() < 0.95 }
+                    val before = acc.overall
+                    val r = engine.settle(acc, subs, date, mapOf("정석" to checked))
+
+                    if (r.log.mark == Mark.NONE) crosses++
+                    when (r.event) {
+                        SettleEvent.FreezeDefended -> defended++
+                        is SettleEvent.PartialReset -> { lengths += before + 1; resets++ }
+                        SettleEvent.ResetWithoutFreeze -> { lengths += before; resets++ }
+                        else -> Unit
+                    }
+                    val keepFrom = date.minusDays(StreakRules.WINDOW_DAYS.toLong())
+                    if (acc.logs.size > 2 * StreakRules.WINDOW_DAYS) acc.logs.removeAll { it.date < keepFrom }
+                }
+            }
+
+            val allDays = trials.toDouble() * daysPerTrial
+            print(cell("%.0f%%".format(skip * 100), 12))
+            print(cell("%.1f회".format(30.4 * crosses / allDays), 12))
+            print(cell(if (crosses == 0) "—" else "%.0f%%".format(100.0 * defended / crosses), 12))
+            print(cell("%.1f회".format(30.4 * resets / allDays), 12))
+            print(cell(if (lengths.isEmpty()) "안 끊김" else "%.1f일".format(lengths.average()), 12))
+            print(cell("%.1f회/월".format(30.4 * wasted / allDays), 12))
+            println()
+        }
+    }
+    println("=".repeat(RULE_WIDTH))
+    println("\"막은 비율\" = ✕인 날 중 프리즈가 방어해 준 비율. \"조각 낭비\" = 상한에 걸려 거절된 횟수.")
+    println("=".repeat(RULE_WIDTH))
+}

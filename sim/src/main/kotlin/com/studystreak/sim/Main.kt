@@ -10,6 +10,7 @@ package com.studystreak.sim
  *   ./gradlew :sim:run --args="skips"      빼먹는 날이 섞였을 때 ✕ 빈도
  *   ./gradlew :sim:run --args="tasks"      하루치를 태스크 몇 개로 쪼갤 것인가
  *   ./gradlew :sim:run --args="buffer"     버퍼 비율 튜닝
+ *   ./gradlew :sim:run --args="freeze"     프리즈가 실제로 막아주는 비율
  *   ./gradlew :sim:run --args="censoring"  측정이 시행 길이에 흔들리는지 확인
  */
 fun main(args: Array<String>) {
@@ -20,11 +21,12 @@ fun main(args: Array<String>) {
         "skips" -> printSkipSweep()
         "tasks" -> printTaskSplit()
         "buffer" -> printBufferTuning()
+        "freeze" -> printFreezeCoverage()
         "censoring" -> printCensoringCheck()
         else -> {
             val seed = arg.toIntOrNull()
             if (seed == null) {
-                println("쓰는 법: (없음) | <씨앗 숫자> | measure | rates | skips | tasks | buffer | censoring")
+                println("쓰는 법: (없음) | <씨앗 숫자> | measure | rates | skips | tasks | buffer | freeze | censoring")
             } else {
                 printScenario(seed)
             }
