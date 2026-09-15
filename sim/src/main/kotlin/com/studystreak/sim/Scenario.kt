@@ -141,7 +141,7 @@ private fun describe(result: ShardResult, action: String): String = when (result
 // ── 표 그리기 ────────────────────────────────────────────────
 // 한글은 터미널에서 두 칸을 먹는다. 그냥 padEnd 를 쓰면 열이 어긋난다.
 
-private fun widthOf(text: String): Int {
+internal fun widthOf(text: String): Int {
     var width = 0
     for (ch in text) {
         val c = ch.code
@@ -153,12 +153,11 @@ private fun widthOf(text: String): Int {
     return width
 }
 
-private fun cell(text: String, width: Int): String = text + " ".repeat(maxOf(0, width - widthOf(text)))
+internal fun cell(text: String, width: Int): String = text + " ".repeat(maxOf(0, width - widthOf(text)))
 
-private const val RULE_WIDTH = 78
+internal const val RULE_WIDTH = 78
 
-fun main(args: Array<String>) {
-    val seed = args.firstOrNull()?.toIntOrNull() ?: 7
+fun printScenario(seed: Int) {
     val (account, subjects, rows) = runScenario(seed)
 
     println("=".repeat(RULE_WIDTH))

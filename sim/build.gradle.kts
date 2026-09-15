@@ -27,7 +27,7 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 application {
-    mainClass.set("com.studystreak.sim.ScenarioKt")
+    mainClass.set("com.studystreak.sim.MainKt")
 }
 
 tasks.named<JavaExec>("run") {
