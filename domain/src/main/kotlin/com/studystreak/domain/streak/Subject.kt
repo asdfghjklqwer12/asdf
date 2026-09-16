@@ -30,23 +30,35 @@ class Subject(
     /** 못 한 태스크를 다음 학습일로 넘길 것인가 */
     val carryOver: Boolean = false,
     /**
-     * 이월 상한 — 그날 원래 배정량의 몇 배까지 쌓을 수 있나. `null` 이면 무제한.
+     * **하루에 최대 며칠치까지** 나올 수 있나. `null` 이면 제한 없음.
      *
-     * 기본값 1은 "내일은 최대 이틀치까지"라는 뜻이다. 무제한으로 두면 못 할수록 다음 날이
-     * 무거워지고, 무거워질수록 또 못 하는 눈덩이가 된다 — 밀린 걸 따라잡을 여력이 없는
-     * 사용자에게는 ✕가 96%까지 올라가고 streak이 아예 안 돈다 (`docs/측정-결과.md` 10절).
+     * 기본값 2 = "밀려도 하루에 이틀치까지". 사용자가 화면에서 보는 숫자 그대로다 —
+     * 하루 3개짜리 플랜이면 아무리 밀려도 하루에 6개를 넘지 않는다.
      *
-     * **상한을 넘친 몫은 계획에서 사라진다.** 진도를 맞추는 건 이월이 아니라 재분배의 일이다
+     * 하루치는 원래 몫이므로 이월로 넘어오는 건 `(maxDaysWorth - 1)` 일치까지다.
+     * 1이면 이월이 아예 없는 것과 같다.
+     *
+     * 제한을 풀면 못 할수록 다음 날이 무거워지고, 무거워질수록 또 못 하는 눈덩이가 된다 —
+     * 밀린 걸 따라잡을 여력이 없는 사용자에게는 ✕가 96%까지 올라가고 streak이 아예 안 돈다
+     * (`docs/측정-결과.md` 10절).
+     *
+     * **넘친 몫은 계획에서 사라진다.** 진도를 맞추는 건 이월이 아니라 재분배의 일이다
      * (기획 6.2). 사라진 몫은 [com.studystreak.domain.streak.SettleResult.carryDropped] 로
      * 알려주므로, 그때 재분배를 권하면 된다.
      */
-    val carryOverCap: Int? = 1,
+    val maxDaysWorth: Int? = 2,
     var streak: Int = 0,
     var longest: Int = 0,
     var freeze: Int = 0,
     /** 다음 학습일로 넘어간 태스크 수. [carryOver] 가 꺼져 있으면 늘 0이다. */
     var carriedTasks: Int = 0,
 ) {
+    init {
+        require(maxDaysWorth == null || maxDaysWorth >= 1) {
+            "maxDaysWorth 는 최소 1(하루치)이어야 한다 — 받은 값: $maxDaysWorth"
+        }
+    }
+
     /** 이월을 빼고, 그날 원래 배정된 태스크 수 */
     fun baseTasksOn(date: LocalDate): Int =
         if (sameDay) daily[date] ?: 0 else tasks
@@ -99,8 +111,9 @@ class Subject(
     internal fun carryAfter(date: LocalDate, required: Int, done: Int): Carry {
         if (!carryOver) return Carry(0, 0)
         val left = (required - done.coerceAtLeast(0)).coerceAtLeast(0)
-        val cap = carryOverCap ?: return Carry(left, 0)
-        val carried = minOf(left, cap * baseTasksOn(date))
+        val limit = maxDaysWorth ?: return Carry(left, 0)
+        // 하루가 limit 일치를 넘지 않게. 그중 하루치는 원래 몫이니 이월은 (limit - 1)일치까지다
+        val carried = minOf(left, (limit - 1) * baseTasksOn(date))
         return Carry(carried, left - carried)
     }
 }

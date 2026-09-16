@@ -33,8 +33,8 @@ private class CarryStats(
 )
 
 /**
- * @param cap 이월 상한 (원래 분량의 배수). null 이면 무제한
- * @param replanAt 이월이 원래 분량의 이 배수를 넘으면 사용자가 계획을 다시 짠다. null 이면 안 짬
+ * @param cap 하루에 최대 며칠치까지 나올 수 있나. null 이면 제한 없음
+ * @param replanAt 하루가 이만큼 일치가 되면 사용자가 계획을 다시 짠다. null 이면 안 짬
  * @param capacity 하루에 손댈 수 있는 태스크 수의 상한 — 원래 하루치의 배수.
  *   사람은 오늘 분량이 4배가 됐다고 4배를 하지 않는다. 이 한계가 눈덩이를 만든다.
  */
@@ -62,7 +62,7 @@ private fun runCarry(
         val acc = Account()
         val subject = Subject(
             "정석", required = true, weekdays = MON_FRI, tasks = tasksPerDay,
-            carryOver = carryOver, carryOverCap = cap,
+            carryOver = carryOver, maxDaysWorth = cap,
         )
         val subs = listOf(subject)
         for (i in 0 until daysPerTrial) {
@@ -96,7 +96,7 @@ private fun runCarry(
             if (subject.carriedTasks >= 3 * tasksPerDay) heavy++ // 하루가 4배 이상 무거워진 날
 
             // 앱이 "이렇게 조정할까요?" 카드를 띄우고 사용자가 수락하는 경우
-            if (replanAt != null && subject.carriedTasks >= replanAt * tasksPerDay) {
+            if (replanAt != null && subject.carriedTasks >= (replanAt - 1) * tasksPerDay) {
                 subject.clearCarryOver()
                 replans++
             }
@@ -133,24 +133,24 @@ fun printCarryOver() {
     )
     val rows = listOf<Triple<String, Pair<Boolean, Int?>, Int?>>(
         Triple("이월 없음", false to null, null),
-        Triple("무제한 (예전 기본값)", true to null, null),
-        Triple("1배 상한 (새 기본값)", true to 1, null),
-        Triple("1배 상한 + 재설정", true to 1, 1),
-        Triple("2배 상한", true to 2, null),
+        Triple("제한 없음 (예전 기본값)", true to null, null),
+        Triple("하루 이틀치 (새 기본값)", true to 2, null),
+        Triple("하루 이틀치 + 재설정", true to 2, 2),
+        Triple("하루 사흘치", true to 3, null),
     )
 
     for ((capacity, capLabel) in capacities) {
         println()
         println("하루 처리 능력: $capLabel")
         println("-".repeat(RULE_WIDTH))
-        print(cell("설정", 22))
+        print(cell("설정", 25))
         for (h in listOf("○", "△", "✕", "평균 유지", "평균 이월", "최대", "4배+인 날")) print(cell(h, 10))
         println()
 
         for ((label, conf, replanAt) in rows) {
             val (on, cap) = conf
             val s = runCarry(cap, on, replanAt, skip = 0.10, capacity = capacity, seed = 77)
-            print(cell(label, 22))
+            print(cell(label, 25))
             print(cell("%.1f%%".format(100.0 * s.full / s.judged), 10))
             print(cell("%.1f%%".format(100.0 * s.partial / s.judged), 10))
             print(cell("%.1f%%".format(100.0 * s.none / s.judged), 10))
@@ -164,14 +164,14 @@ fun printCarryOver() {
 
     println()
     println("-".repeat(RULE_WIDTH))
-    println("재설정을 어느 선에서 권할 것인가 — 처리 능력 1.3배, 이월 무제한")
+    println("재설정을 어느 선에서 권할 것인가 — 처리 능력 1.3배, 이월 제한 없음")
     println("-".repeat(RULE_WIDTH))
     print(cell("재설정 기준", 22))
     for (h in listOf("평균 유지", "평균 이월", "최대", "재설정/월")) print(cell(h, 12))
     println()
-    for (at in listOf(null, 1, 2, 3, 5)) {
+    for (at in listOf(null, 2, 3, 4, 6)) {
         val s = runCarry(cap = null, carryOver = true, replanAt = at, skip = 0.10, capacity = 1.3, seed = 4242)
-        print(cell(if (at == null) "안 함" else "원래의 ${at}배 넘으면", 22))
+        print(cell(if (at == null) "안 함" else "하루가 ${at}일치가 되면", 22))
         print(cell("%.1f일".format(s.meanStreak), 12))
         print(cell("%.1f개".format(s.meanCarry), 12))
         print(cell("${s.maxCarry}개", 12))

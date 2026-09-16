@@ -30,14 +30,14 @@ class CarryOverTest {
 
     private fun math(
         tasks: Int = 3,
-        /** 기본값은 Subject 의 기본값과 같은 1배 상한 */
-        cap: Int? = 1,
+        /** 기본값은 Subject 의 기본값과 같은 "하루 최대 이틀치" */
+        maxDaysWorth: Int? = 2,
         carryOver: Boolean = true,
         streak: Int = 0,
         freeze: Int = 0,
     ) = Subject(
         "수학", required = true, weekdays = monToFri, tasks = tasks,
-        carryOver = carryOver, carryOverCap = cap, streak = streak, freeze = freeze,
+        carryOver = carryOver, maxDaysWorth = maxDaysWorth, streak = streak, freeze = freeze,
     )
 
     // ── 기본 동작 ────────────────────────────────────────────────
@@ -84,9 +84,9 @@ class CarryOverTest {
     }
 
     @Test
-    fun `상한을 풀면 계속 쌓인다`() {
+    fun `제한을 풀면 계속 쌓인다`() {
         val acc = Account()
-        val subject = math(cap = null)
+        val subject = math(maxDaysWorth = null)
         val piled = mutableListOf<Int>()
 
         for (i in 0 until 3) {
@@ -99,29 +99,57 @@ class CarryOverTest {
     }
 
     @Test
-    fun `기본값은 하루치까지만 쌓인다`() {
+    fun `기본값은 하루에 이틀치까지다`() {
         val acc = Account()
         val subject = Subject("수학", required = true, weekdays = monToFri, tasks = 3, carryOver = true)
-        assertEquals(1, subject.carryOverCap, "기본 상한은 원래 하루치의 1배")
+        assertEquals(2, subject.maxDaysWorth, "기본값은 하루 최대 이틀치")
 
-        val piled = mutableListOf<Int>()
-        for (i in 0 until 3) {
+        val assigned = mutableListOf<Int>()
+        for (i in 0 until 4) {
+            assigned += subject.tasksOn(day(i))
             engine.settle(acc, listOf(subject), day(i), emptyMap())
-            piled += subject.carriedTasks
         }
 
-        assertEquals(listOf(3, 3, 3), piled, "내일은 아무리 밀려도 최대 이틀치다")
-        assertEquals(6, subject.tasksOn(day(3)))
+        // 하루 3개짜리 플랜이니 이틀치 = 6개. 아무리 밀려도 6개를 안 넘는다
+        assertEquals(listOf(3, 6, 6, 6), assigned)
+        assertEquals(3, subject.carriedTasks, "이월로 넘어오는 건 하루치까지")
     }
 
     @Test
-    fun `상한을 넘친 몫은 계획에서 사라지고 그걸 알려준다`() {
+    fun `하루 최대 사흘치로 늘리면 9개까지 나온다`() {
         val acc = Account()
-        val subject = math(tasks = 3) // 기본 상한 1배 = 3개
+        val subject = math(maxDaysWorth = 3)
+
+        val assigned = mutableListOf<Int>()
+        for (i in 0 until 4) {
+            assigned += subject.tasksOn(day(i))
+            engine.settle(acc, listOf(subject), day(i), emptyMap())
+        }
+
+        assertEquals(listOf(3, 6, 9, 9), assigned)
+        assertEquals(6, subject.carriedTasks, "이월은 이틀치까지")
+    }
+
+    @Test
+    fun `하루 최대 하루치면 이월이 아예 안 생긴다`() {
+        val acc = Account()
+        val subject = math(maxDaysWorth = 1)
+
+        val r = engine.settle(acc, listOf(subject), monday, emptyMap())
+
+        assertEquals(0, subject.carriedTasks)
+        assertEquals(3, subject.tasksOn(day(1)), "다음 날도 원래 분량뿐")
+        assertEquals(mapOf("수학" to 3), r.carryDropped, "밀린 3개는 전부 재분배가 맡는다")
+    }
+
+    @Test
+    fun `한도를 넘친 몫은 계획에서 사라지고 그걸 알려준다`() {
+        val acc = Account()
+        val subject = math(tasks = 3) // 기본값: 하루 최대 이틀치 = 6개, 이월은 3개까지
 
         val first = engine.settle(acc, listOf(subject), monday, emptyMap())
         assertEquals(mapOf("수학" to 3), first.carriedOver)
-        assertTrue(first.carryDropped.isEmpty(), "첫날은 아직 상한에 안 닿는다")
+        assertTrue(first.carryDropped.isEmpty(), "첫날은 아직 한도에 안 닿는다")
 
         // 이튿날 배정은 6개. 하나도 안 하면 6개가 밀리는데 3개까지만 넘어간다
         val second = engine.settle(acc, listOf(subject), day(1), emptyMap())
@@ -132,13 +160,13 @@ class CarryOverTest {
     }
 
     @Test
-    fun `상한이 무제한이면 아무것도 사라지지 않는다`() {
+    fun `제한이 없으면 아무것도 사라지지 않는다`() {
         val acc = Account()
-        val subject = math(cap = null)
+        val subject = math(maxDaysWorth = null)
 
         val results = (0 until 3).map { engine.settle(acc, listOf(subject), day(it), emptyMap()) }
 
-        assertTrue(results.all { it.carryDropped.isEmpty() }, "무제한이면 전부 다음 날로 간다")
+        assertTrue(results.all { it.carryDropped.isEmpty() }, "제한이 없으면 전부 다음 날로 간다")
         assertEquals(9, subject.carriedTasks)
     }
 
@@ -147,7 +175,7 @@ class CarryOverTest {
     @Test
     fun `계획을 다시 짜면 쌓인 이월이 지워진다`() {
         val acc = Account()
-        val subject = math(cap = null)
+        val subject = math(maxDaysWorth = null)
         for (i in 0 until 3) engine.settle(acc, listOf(subject), day(i), emptyMap())
         assertEquals(9, subject.carriedTasks)
 
@@ -203,7 +231,7 @@ class CarryOverTest {
         assertEquals(Mark.PARTIAL, r.log.mark)
         assertEquals(20, r.log.tasksTotal, "분모가 이월을 포함한 20개")
         assertEquals(6, r.log.tasksChecked)
-        assertEquals(10, subject.carriedTasks, "남은 14개 중 상한(1배 = 10개)까지만 넘어간다")
+        assertEquals(10, subject.carriedTasks, "하루 최대 이틀치(20개)라 이월은 10개까지")
         assertEquals(mapOf("수학" to 4), r.carryDropped, "넘친 4개는 계획에서 사라진다")
     }
 
@@ -225,9 +253,9 @@ class CarryOverTest {
     // ── 상한 ────────────────────────────────────────────────────
 
     @Test
-    fun `상한을 주면 거기서 멈춘다`() {
+    fun `하루 최대 사흘치면 이월이 6개에서 멈춘다`() {
         val acc = Account()
-        val subject = math(tasks = 3, cap = 2) // 원래 분량의 2배 = 6개까지
+        val subject = math(tasks = 3, maxDaysWorth = 3) // 하루 최대 9개, 이월은 6개까지
         val piled = mutableListOf<Int>()
 
         for (i in 0 until 4) {
@@ -235,8 +263,8 @@ class CarryOverTest {
             piled += subject.carriedTasks
         }
 
-        assertEquals(listOf(3, 6, 6, 6), piled, "6개에서 더 안 쌓인다")
-        assertEquals(9, subject.tasksOn(day(4)), "그래도 그날은 원래 3개 + 이월 6개")
+        assertEquals(listOf(3, 6, 6, 6), piled, "이월이 6개에서 더 안 쌓인다")
+        assertEquals(9, subject.tasksOn(day(4)), "그날 배정은 원래 3개 + 이월 6개 = 사흘치")
     }
 
     // ── 다른 규칙과의 관계 ──────────────────────────────────────
