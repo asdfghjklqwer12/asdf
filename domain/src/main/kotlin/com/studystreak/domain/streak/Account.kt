@@ -10,6 +10,7 @@ import com.studystreak.domain.streak.StreakRules.WINDOW_DAYS
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
 
 /** 조각을 얻은 경로 (8장 ShardLog.source) */
 enum class ShardSource { REST_CHECK, AD }
@@ -64,6 +65,20 @@ class Account(
 
     var lastResetDate: LocalDate? = null
     var freezeUsedAt: LocalDate? = null
+
+    // ---------- 48시간 복구 (5.5) ----------
+
+    /**
+     * 되돌릴 수 있는 끊김. 정산이 초기화를 낼 때마다 덮어쓰고, 복구를 쓰면 비워진다.
+     * 되돌릴 수 있는 건 언제나 **가장 최근 끊김** 하나다.
+     */
+    var pendingBreak: Break? = null
+
+    /** 복구를 쓴 날들 — "달력 월 1회" 를 세려면 남아 있어야 한다 */
+    val recoveries: MutableList<LocalDate> = mutableListOf()
+
+    /** 그 달에 복구를 몇 번 썼나 */
+    fun recoveriesIn(month: YearMonth): Int = recoveries.count { YearMonth.from(it) == month }
 
     // ---------- 조각 ----------
 

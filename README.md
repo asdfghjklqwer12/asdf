@@ -39,6 +39,7 @@ Compose UI 모듈(`:app`)은 아직 없다 — `settings.gradle.kts` 의 TODO �
 | `CarryOverTest` | 22 | 이월 규칙 — 파이썬에 없던 새 규칙 |
 | `CatchUpTest` | 5 | 밀린 날의 두 갈래 |
 | `ChecklistTest` | 14 | 분량 계획 → 체크리스트 → 과목 다리 |
+| `RecoveryTest` | 21 | 48시간 복구 (파이썬에 없던 새 규칙) |
 
 ## 규칙을 눈으로 보기
 

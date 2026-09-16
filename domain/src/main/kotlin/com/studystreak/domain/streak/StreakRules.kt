@@ -32,4 +32,16 @@ object StreakRules {
 
     /** 하루 마감 시각 기본값 — 새벽 3시 (5.3) */
     const val DEFAULT_DAY_CUTOFF_HOUR = 3
+
+    /**
+     * 48시간 복구를 쓸 수 있는 기간 — 끊긴 날의 **다음 이틀** (5.5).
+     *
+     * 기획서의 "48시간"을 실제 시각이 아니라 날짜로 센다. 실제 시각으로 재면 앱을 늦게
+     * 여는 사용자가 이득을 본다 — 사흘 뒤에 열면 그때 끊김이 확정되고 거기서 48시간이
+     * 시작되기 때문이다. 날짜로 세면 언제 열든 창이 같다.
+     */
+    const val RECOVERY_WINDOW_DAYS = 2
+
+    /** 복구는 달력 월 기준 이만큼만 (5.5) */
+    const val RECOVERIES_PER_MONTH = 1
 }

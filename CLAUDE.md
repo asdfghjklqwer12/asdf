@@ -81,6 +81,31 @@ val subject   = checklist.toSubject("정석", required = true)
 기획 5.2의 명목 기준 30% 에 가장 가깝다. 2줄이면 3페이지를 읽고도 ✕다.
 6·7줄이 3줄과 동점이지만 화면만 복잡해진다. **바꾸지 마라.**
 
+## 나중에 얹은 규칙 — 48시간 복구 (기획 5.5)
+
+기획서엔 `[결정됨]` 인데 파이썬에 구현이 없어서 새로 짰다. 끊긴 날의 **밀린 하루치**를
+다음 이틀 안에 다 하면 숫자가 돌아온다. 달력 월 1회.
+
+```kotlin
+val offer = engine.recoveryOffer(account, subjects, today)   // 카드를 띄울지
+engine.recover(account, subjects, today, makeUp)             // 다 했으면 무른다
+```
+
+- **복구는 초기화만 무른다. 그날의 ○△✕ 는 안 바뀐다.** 그래서 △로 끊긴 날은 △의 +1이
+  살아 있고, ✕로 끊긴 날은 +1 없이 그 자리에 멈춘다 — `FreezeDefended` 와 같은 모양이다.
+  ○로 바꾸지 마라. 안 한 날을 한 것처럼 기록이 거짓이 된다 (`DayLog.recoveredAt` 도장만 찍는다)
+- **끊기기 전 값을 더한다** (`overall += overallBefore`). 끊긴 뒤 오늘까지 올린 숫자가
+  안 날아가게 하려면 대입이 아니라 덧셈이어야 한다
+- **되돌릴 수 있는 건 가장 최근 끊김 하나다.** 창 안에 또 끊기면 그게 대상이 되고,
+  `overallBefore` 가 0이면(0에서 0으로 끊긴 것) 제안하지 않는다
+- **△ 3개로 끊긴 것도 대상이다.** ✕만 대상으로 하면 이 기능은 **1년에 0번** 켜진다 —
+  streak을 죽이는 건 ✕가 아니라 △다 (`docs/측정-결과.md` 16절). 빼지 마라
+- **"48시간"을 실제 시각이 아니라 날짜로 센다.** 실제 시각으로 재면 앱을 늦게 여는 사용자가
+  이득을 본다 (사흘 뒤에 열면 그때 끊김이 확정되고 거기서 48시간이 시작된다)
+- 과목 프리즈가 지킨 과목은 안 끊겼으므로 복구가 안 건드린다. 한 번 더 얹으면 없던 날이 생긴다
+- 이월이 켜진 과목은 밀린 몫이 **이미 다음 날 배정에 들어가 있다.**
+  `RecoveryOffer.Available.alreadyCarried` 가 그 목록이다 — 앱이 같은 일을 두 번 시키면 안 된다
+
 ## 코드 제약
 
 - **`:domain` 에 Android 의존성을 넣지 마라.** Compose 도 `Context` 도 안 된다
@@ -95,7 +120,7 @@ val subject   = checklist.toSubject("정석", required = true)
 ./gradlew :domain:test
 ```
 
-111개가 전부 통과해야 한다. 하나라도 깨지면 규칙이 바뀐 것이다.
+132개가 전부 통과해야 한다. 하나라도 깨지면 규칙이 바뀐 것이다.
 
 | 테스트 | 개수 | 성격 |
 |---|---|---|
@@ -107,10 +132,11 @@ val subject   = checklist.toSubject("정석", required = true)
 | `CarryOverTest` | 22 | 이월 규칙 (파이썬에 없던 새 규칙) |
 | `CatchUpTest` | 5 | 밀린 날의 두 갈래 (계획 조정 / 내일 같이 하기) |
 | `ChecklistTest` | 14 | 분량 계획 → 체크리스트 → 과목 다리 |
+| `RecoveryTest` | 21 | 48시간 복구 (파이썬에 없던 새 규칙) |
 
 앞의 38개는 파이썬 검증을 그대로 옮긴 것이다. 이름도 내용도 바꾸지 마라.
 그다음 32개도 파이썬을 돌려 기대값을 뽑은 것이라 마찬가지다.
-`CarryOverTest` 22개만 파이썬에 없던 새 규칙이다.
+`CarryOverTest` 22개와 `RecoveryTest` 21개만 파이썬에 없던 새 규칙이다.
 
 **재분배는 반드시 원본 `Allocation` 에서 누적 완료량으로 다시 계산한다.**
 직전 결과 위에 또 하면 분량이 부풀려진다 (`redistribute` KDoc 참고).
@@ -125,6 +151,7 @@ val subject   = checklist.toSubject("정석", required = true)
 ./gradlew :sim:run --args="tasks"      하루치 분할 (가상 모델 — 14절이 뒤집음)
 ./gradlew :sim:run --args="checklist"  같은 질문을 진짜 체크리스트로
 ./gradlew :sim:run --args="checklist-confirm"  그 답을 짝지은 비교로 확인
+./gradlew :sim:run --args="recovery"   48시간 복구가 실제로 얼마나 켜지나
 ./gradlew :sim:run --args="buffer"     버퍼 비율 튜닝
 ./gradlew :sim:run --args="freeze"     프리즈가 실제로 막아주는 비율
 ./gradlew :sim:run --args="carry"      이월이 만드는 눈덩이

@@ -3,11 +3,14 @@ package com.studystreak.domain.streak
 import com.studystreak.domain.streak.StreakRules.DEFAULT_DAY_CUTOFF_HOUR
 import com.studystreak.domain.streak.StreakRules.PARTIAL_MIN_RATIO
 import com.studystreak.domain.streak.StreakRules.PARTIAL_RESET_AT
+import com.studystreak.domain.streak.StreakRules.RECOVERIES_PER_MONTH
+import com.studystreak.domain.streak.StreakRules.RECOVERY_WINDOW_DAYS
 import com.studystreak.domain.streak.StreakRules.SUBJECT_FREEZE_MAX
 import com.studystreak.domain.streak.StreakRules.WINDOW_DAYS
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -85,6 +88,7 @@ class StreakEngine(
 
         val now = clock.instant()
         val reallyDone = mutableSetOf<String>()
+        val streakBeforeReset = mutableMapOf<String, Int>() // 48시간 복구가 되돌릴 값 (5.5)
         val carriedOver = mutableMapOf<String, Int>()
         val carryDropped = mutableMapOf<String, Int>()
 
@@ -111,6 +115,7 @@ class StreakEngine(
                 if (subject.freeze > 0) {
                     subject.freeze -= 1 // 과목 프리즈가 과목 streak만 지켜준다
                 } else {
+                    if (subject.streak > 0) streakBeforeReset[subject.name] = subject.streak
                     subject.streak = 0
                 }
                 // 과목 프리즈가 streak 을 지켜줘도 진도는 안 나갔으므로 이월은 그대로 쌓인다
@@ -155,6 +160,18 @@ class StreakEngine(
 
         var event: SettleEvent? = null
 
+        // 48시간 복구(5.5)가 되돌릴 자리를 남긴다. 되돌릴 수 있는 건 가장 최근 끊김 하나다
+        fun recordBreak(overallBefore: Int, cause: SettleEvent) {
+            account.pendingBreak = Break(
+                date = date,
+                overallBefore = overallBefore,
+                cause = cause,
+                required = due.associate { it.name to requiredToday.getValue(it) },
+                done = due.associate { it.name to minOf(doneTasks[it.name] ?: 0, requiredToday.getValue(it)) },
+                subjectStreaksBefore = streakBeforeReset.filterKeys { name -> due.any { it.name == name } },
+            )
+        }
+
         // △ 트랙
         if (mark == Mark.PARTIAL) {
             val lo = date.minusDays((WINDOW_DAYS - 1).toLong())
@@ -162,10 +179,12 @@ class StreakEngine(
                 it.mark == Mark.PARTIAL && it.date >= lo && it.date <= date && !it.consumed
             }
             if (recent.size >= PARTIAL_RESET_AT) {
+                val cause = SettleEvent.PartialReset(recent.size)
+                recordBreak(account.overall, cause) // △는 이미 +1 된 값이다 — 복구는 초기화만 무른다
                 account.overall = 0
                 account.lastResetDate = date
                 account.consumeRecentPartials(date, now)
-                event = SettleEvent.PartialReset(recent.size)
+                event = cause
             }
         }
 
@@ -177,6 +196,7 @@ class StreakEngine(
                 event = SettleEvent.FreezeDefended
                 // overall 그대로 유지 — +1도 아니고 0도 아님
             } else {
+                recordBreak(account.overall, SettleEvent.ResetWithoutFreeze) // ✕는 +1 이 없었다
                 account.overall = 0
                 account.lastResetDate = date
                 account.consumeRecentPartials(date, now) // △발 초기화와 똑같이 창을 비워준다
@@ -187,5 +207,73 @@ class StreakEngine(
         account.longest = maxOf(account.longest, account.overall)
         return SettleResult(log, event, alreadySettled = false,
             carriedOver = carriedOver, carryDropped = carryDropped)
+    }
+
+    // ---------- 48시간 복구 (5.5) ----------
+
+    /**
+     * 지금 끊긴 streak을 무를 수 있는가.
+     *
+     * 끊긴 날의 **밀린 하루치**를 다음 이틀 안에 다 하면 숫자가 돌아온다. 달력 월 1회.
+     * [today] 는 [currentStudyDate] 로 뽑은 학습일이다.
+     */
+    fun recoveryOffer(account: Account, subjects: List<Subject>, today: LocalDate): RecoveryOffer {
+        val b = account.pendingBreak ?: return RecoveryOffer.Unavailable(RecoveryDenial.NO_BREAK)
+        if (b.overallBefore <= 0) return RecoveryOffer.Unavailable(RecoveryDenial.NOTHING_TO_RESTORE)
+        if (!today.isAfter(b.date)) return RecoveryOffer.Unavailable(RecoveryDenial.TOO_EARLY)
+        if (today.isAfter(b.deadline)) return RecoveryOffer.Unavailable(RecoveryDenial.EXPIRED)
+        if (account.recoveriesIn(YearMonth.from(today)) >= RECOVERIES_PER_MONTH) {
+            return RecoveryOffer.Unavailable(RecoveryDenial.USED_THIS_MONTH)
+        }
+        return RecoveryOffer.Available(
+            brokenOn = b.date,
+            deadline = b.deadline,
+            restoresTo = account.overall + b.overallBefore,
+            remaining = b.remaining,
+            // 이월이 켜진 과목은 밀린 몫이 이미 다음 학습일 배정에 들어가 있다
+            alreadyCarried = subjects
+                .filter { it.carryOver && it.carriedTasks > 0 && it.name in b.remaining }
+                .map { it.name }.toSet(),
+        )
+    }
+
+    /**
+     * 밀린 하루치를 다 했으니 끊김을 무른다. [makeUp] = {과목명: 밀린 몫 중 해낸 수}.
+     *
+     * **복구는 초기화만 무른다. 그날의 ○△✕ 는 안 바뀐다.**
+     * 그래서 △로 끊긴 날은 △의 +1이 그대로 살아 있고, ✕로 끊긴 날은 +1 없이 그 자리에
+     * 멈춘 것이 된다 — `SettleEvent.FreezeDefended` 와 같은 모양이다.
+     *
+     * 끊긴 뒤 오늘까지 올린 숫자는 안 날아간다. 끊기기 전 값을 **더하기** 때문이다.
+     */
+    fun recover(
+        account: Account,
+        subjects: List<Subject>,
+        today: LocalDate,
+        makeUp: Map<String, Int>,
+    ): RecoveryResult {
+        val offer = recoveryOffer(account, subjects, today)
+        if (offer is RecoveryOffer.Unavailable) return RecoveryResult.Refused(offer.reason)
+        val b = checkNotNull(account.pendingBreak)
+
+        if (b.remaining.any { (name, need) -> (makeUp[name] ?: 0) < need }) {
+            return RecoveryResult.Refused(RecoveryDenial.NOT_FINISHED)
+        }
+
+        account.overall += b.overallBefore
+        account.longest = maxOf(account.longest, account.overall)
+
+        val restored = mutableMapOf<String, Int>()
+        for (subject in subjects) {
+            val before = b.subjectStreaksBefore[subject.name] ?: continue
+            subject.streak += before
+            subject.longest = maxOf(subject.longest, subject.streak)
+            restored[subject.name] = subject.streak
+        }
+
+        account.logs.firstOrNull { it.date == b.date }?.recoveredAt = clock.instant()
+        account.recoveries += today
+        account.pendingBreak = null
+        return RecoveryResult.Recovered(b.date, account.overall, restored)
     }
 }
