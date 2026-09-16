@@ -71,7 +71,9 @@ private fun measure(
 
         for (i in 0 until daysPerTrial) {
             val date = start.plusDays(i.toLong())
-            val skipped = rng.nextDouble() < skipRate
+            // 건너뛰기를 안 쓰는 측정에서는 난수를 뽑지 않는다.
+            // 여기서 한 번 더 뽑으면 난수열이 통째로 밀려 기존 측정치가 재현되지 않는다.
+            val skipped = skipRate > 0.0 && rng.nextDouble() < skipRate
             val done = subjects.associate { s ->
                 s.name to if (skipped) 0 else (0 until s.tasks).count { rng.nextDouble() < completionRate }
             }

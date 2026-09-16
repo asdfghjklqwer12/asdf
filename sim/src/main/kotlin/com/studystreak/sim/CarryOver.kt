@@ -70,7 +70,7 @@ private fun runCarry(
             if (!subject.studiesOn(date)) continue
 
             val required = subject.tasksOn(date)
-            val skipped = rng.nextDouble() < skip
+            val skipped = skip > 0.0 && rng.nextDouble() < skip
             // 손댈 수 있는 만큼만 시도하고, 시도한 것 중 95%를 해낸다
             val attempt = if (capacity == Double.MAX_VALUE) required
             else minOf(required, kotlin.math.ceil(capacity * tasksPerDay).toInt())
@@ -96,7 +96,7 @@ private fun runCarry(
             if (subject.carriedTasks >= 3 * tasksPerDay) heavy++ // 하루가 4배 이상 무거워진 날
 
             // 앱이 "이렇게 조정할까요?" 카드를 띄우고 사용자가 수락하는 경우
-            if (replanAt != null && subject.carriedTasks > replanAt * tasksPerDay) {
+            if (replanAt != null && subject.carriedTasks >= replanAt * tasksPerDay) {
                 subject.clearCarryOver()
                 replans++
             }
@@ -132,10 +132,11 @@ fun printCarryOver() {
         2.0 to "원래의 2배까지",
     )
     val rows = listOf<Triple<String, Pair<Boolean, Int?>, Int?>>(
-        Triple("이월 없음 (지금까지)", false to null, null),
-        Triple("이월 · 무제한", true to null, null),
-        Triple("이월 · 2배 상한", true to 2, null),
-        Triple("무제한 + 2배에서 재설정", true to null, 2),
+        Triple("이월 없음", false to null, null),
+        Triple("무제한 (예전 기본값)", true to null, null),
+        Triple("1배 상한 (새 기본값)", true to 1, null),
+        Triple("1배 상한 + 재설정", true to 1, 1),
+        Triple("2배 상한", true to 2, null),
     )
 
     for ((capacity, capLabel) in capacities) {

@@ -32,11 +32,15 @@ class Subject(
     /**
      * 이월 상한 — 그날 원래 배정량의 몇 배까지 쌓을 수 있나. `null` 이면 무제한.
      *
-     * 무제한이면 못 할수록 다음 날이 무거워지고, 무거워질수록 또 못 하는 눈덩이가 된다.
-     * 그 압박이 "계획을 다시 짜라"는 신호이기도 하므로 기본값은 무제한으로 두되,
-     * 감당 가능한 선에서 끊고 싶으면 배수를 준다.
+     * 기본값 1은 "내일은 최대 이틀치까지"라는 뜻이다. 무제한으로 두면 못 할수록 다음 날이
+     * 무거워지고, 무거워질수록 또 못 하는 눈덩이가 된다 — 밀린 걸 따라잡을 여력이 없는
+     * 사용자에게는 ✕가 96%까지 올라가고 streak이 아예 안 돈다 (`docs/측정-결과.md` 10절).
+     *
+     * **상한을 넘친 몫은 계획에서 사라진다.** 진도를 맞추는 건 이월이 아니라 재분배의 일이다
+     * (기획 6.2). 사라진 몫은 [com.studystreak.domain.streak.SettleResult.carryDropped] 로
+     * 알려주므로, 그때 재분배를 권하면 된다.
      */
-    val carryOverCap: Int? = null,
+    val carryOverCap: Int? = 1,
     var streak: Int = 0,
     var longest: Int = 0,
     var freeze: Int = 0,
@@ -78,16 +82,25 @@ class Subject(
         carriedTasks = 0
     }
 
+    /** 이월 계산 결과 */
+    internal class Carry(
+        /** 다음 학습일로 넘길 태스크 수 */
+        val carried: Int,
+        /** 상한에 걸려 계획에서 사라진 태스크 수 */
+        val dropped: Int,
+    )
+
     /**
-     * [date] 의 배정량이 [required] 일 때 [done] 개를 체크했다면 다음 학습일로 넘길 태스크 수.
+     * [date] 의 배정량이 [required] 일 때 [done] 개를 체크했다면 얼마가 넘어가고 얼마가 사라지나.
      *
      * [required] 를 인자로 받는 이유: 정산 도중에는 [carriedTasks] 가 갱신되는 중이라
      * [tasksOn] 을 다시 부르면 값이 흔들린다. 부르는 쪽이 갱신 전에 확정한 값을 넘긴다.
      */
-    internal fun carryAfter(date: LocalDate, required: Int, done: Int): Int {
-        if (!carryOver) return 0
+    internal fun carryAfter(date: LocalDate, required: Int, done: Int): Carry {
+        if (!carryOver) return Carry(0, 0)
         val left = (required - done.coerceAtLeast(0)).coerceAtLeast(0)
-        val cap = carryOverCap ?: return left
-        return minOf(left, cap * baseTasksOn(date))
+        val cap = carryOverCap ?: return Carry(left, 0)
+        val carried = minOf(left, cap * baseTasksOn(date))
+        return Carry(carried, left - carried)
     }
 }

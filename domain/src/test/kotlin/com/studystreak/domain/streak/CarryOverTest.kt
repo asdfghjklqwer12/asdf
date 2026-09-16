@@ -30,7 +30,8 @@ class CarryOverTest {
 
     private fun math(
         tasks: Int = 3,
-        cap: Int? = null,
+        /** 기본값은 Subject 의 기본값과 같은 1배 상한 */
+        cap: Int? = 1,
         carryOver: Boolean = true,
         streak: Int = 0,
         freeze: Int = 0,
@@ -83,9 +84,9 @@ class CarryOverTest {
     }
 
     @Test
-    fun `계속 못 하면 계속 쌓인다`() {
+    fun `상한을 풀면 계속 쌓인다`() {
         val acc = Account()
-        val subject = math()
+        val subject = math(cap = null)
         val piled = mutableListOf<Int>()
 
         for (i in 0 until 3) {
@@ -97,12 +98,56 @@ class CarryOverTest {
         assertEquals(12, subject.tasksOn(day(3)), "목요일엔 원래 3개 + 이월 9개")
     }
 
+    @Test
+    fun `기본값은 하루치까지만 쌓인다`() {
+        val acc = Account()
+        val subject = Subject("수학", required = true, weekdays = monToFri, tasks = 3, carryOver = true)
+        assertEquals(1, subject.carryOverCap, "기본 상한은 원래 하루치의 1배")
+
+        val piled = mutableListOf<Int>()
+        for (i in 0 until 3) {
+            engine.settle(acc, listOf(subject), day(i), emptyMap())
+            piled += subject.carriedTasks
+        }
+
+        assertEquals(listOf(3, 3, 3), piled, "내일은 아무리 밀려도 최대 이틀치다")
+        assertEquals(6, subject.tasksOn(day(3)))
+    }
+
+    @Test
+    fun `상한을 넘친 몫은 계획에서 사라지고 그걸 알려준다`() {
+        val acc = Account()
+        val subject = math(tasks = 3) // 기본 상한 1배 = 3개
+
+        val first = engine.settle(acc, listOf(subject), monday, emptyMap())
+        assertEquals(mapOf("수학" to 3), first.carriedOver)
+        assertTrue(first.carryDropped.isEmpty(), "첫날은 아직 상한에 안 닿는다")
+
+        // 이튿날 배정은 6개. 하나도 안 하면 6개가 밀리는데 3개까지만 넘어간다
+        val second = engine.settle(acc, listOf(subject), day(1), emptyMap())
+
+        assertEquals(mapOf("수학" to 3), second.carriedOver)
+        assertEquals(mapOf("수학" to 3), second.carryDropped, "넘친 3개는 재분배가 맡아야 한다")
+        assertEquals(3, subject.carriedTasks)
+    }
+
+    @Test
+    fun `상한이 무제한이면 아무것도 사라지지 않는다`() {
+        val acc = Account()
+        val subject = math(cap = null)
+
+        val results = (0 until 3).map { engine.settle(acc, listOf(subject), day(it), emptyMap()) }
+
+        assertTrue(results.all { it.carryDropped.isEmpty() }, "무제한이면 전부 다음 날로 간다")
+        assertEquals(9, subject.carriedTasks)
+    }
+
     // ── 사용자가 계획을 다시 짜는 경우 ──────────────────────────
 
     @Test
     fun `계획을 다시 짜면 쌓인 이월이 지워진다`() {
         val acc = Account()
-        val subject = math()
+        val subject = math(cap = null)
         for (i in 0 until 3) engine.settle(acc, listOf(subject), day(i), emptyMap())
         assertEquals(9, subject.carriedTasks)
 
@@ -158,7 +203,8 @@ class CarryOverTest {
         assertEquals(Mark.PARTIAL, r.log.mark)
         assertEquals(20, r.log.tasksTotal, "분모가 이월을 포함한 20개")
         assertEquals(6, r.log.tasksChecked)
-        assertEquals(14, subject.carriedTasks)
+        assertEquals(10, subject.carriedTasks, "남은 14개 중 상한(1배 = 10개)까지만 넘어간다")
+        assertEquals(mapOf("수학" to 4), r.carryDropped, "넘친 4개는 계획에서 사라진다")
     }
 
     @Test

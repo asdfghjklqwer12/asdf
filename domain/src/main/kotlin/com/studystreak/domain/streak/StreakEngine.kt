@@ -36,6 +36,14 @@ data class SettleResult(
      * 나중에 다시 물어보려면 그쪽을 읽으면 된다. 재정산([alreadySettled])일 때는 비어 있다.
      */
     val carriedOver: Map<String, Int> = emptyMap(),
+    /**
+     * 이월 상한에 걸려 **계획에서 사라진** 태스크 — {과목명: 사라진 수}.
+     *
+     * 비어 있지 않다는 건 진도가 조용히 밀려나고 있다는 뜻이다. 이월은 "어제 못 한 걸 오늘"
+     * 까지만 책임지고, 그 너머는 재분배(기획 6.2)가 맡는다. 여기에 뭔가 찍히면
+     * "3일 밀렸어요, 이렇게 조정할까요?" 카드를 띄울 때다.
+     */
+    val carryDropped: Map<String, Int> = emptyMap(),
 )
 
 /**
@@ -78,6 +86,7 @@ class StreakEngine(
         val now = clock.instant()
         val reallyDone = mutableSetOf<String>()
         val carriedOver = mutableMapOf<String, Int>()
+        val carryDropped = mutableMapOf<String, Int>()
 
         // 이월분을 포함한 그날 배정량을 **먼저 확정한다.**
         // 1단계가 carriedTasks 를 갱신하므로, 그 뒤에 tasksOn 을 다시 부르면
@@ -106,8 +115,9 @@ class StreakEngine(
                 }
                 // 과목 프리즈가 streak 을 지켜줘도 진도는 안 나갔으므로 이월은 그대로 쌓인다
                 val carry = subject.carryAfter(date, required, done)
-                subject.carriedTasks = carry
-                if (carry > 0) carriedOver[subject.name] = carry
+                subject.carriedTasks = carry.carried
+                if (carry.carried > 0) carriedOver[subject.name] = carry.carried
+                if (carry.dropped > 0) carryDropped[subject.name] = carry.dropped
                 // 전체 판정에서는 완료로 치지 않는다 → reallyDone 에 넣지 않음
             }
         }
@@ -175,6 +185,7 @@ class StreakEngine(
         }
 
         account.longest = maxOf(account.longest, account.overall)
-        return SettleResult(log, event, alreadySettled = false, carriedOver = carriedOver)
+        return SettleResult(log, event, alreadySettled = false,
+            carriedOver = carriedOver, carryDropped = carryDropped)
     }
 }
