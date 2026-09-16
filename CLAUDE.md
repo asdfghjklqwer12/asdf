@@ -58,6 +58,25 @@
 그날 배정량은 `requiredToday` 로 **먼저 확정한다.** 안 그러면 방금 넘긴 몫을 오늘 분량으로
 한 번 더 센다 (실제로 났던 버그다).
 
+## 분량 계획과 체크리스트를 잇는 다리
+
+`allocate()` 는 "9월 9일은 7페이지" 까지만 낸다. 화면에 그리고 판정하려면 **체크박스 줄**이
+있어야 한다 — 30% 판정은 페이지가 아니라 **체크한 줄 수**로 한다.
+
+```kotlin
+val checklist = allocation.toChecklist()          // 하루치를 DEFAULT_TASKS_PER_DAY 줄로
+val subject   = checklist.toSubject("정석", required = true)
+```
+
+- 나머지는 **앞줄이 갖는다** — 7페이지면 4p + 3p
+- 분량이 줄 수보다 적으면 그만큼만 (1페이지짜리 날은 한 줄)
+- 버퍼일(0페이지)은 줄이 없어 **휴식일**이 된다 → 자동 ✕가 안 찍힌다
+- `toSubject` 는 `sameDay = true` 를 쓴다. 이름이 당일 계획처럼 보이지만 실제 뜻은
+  **"날짜마다 태스크 수가 정해지는 과목"** 이고, 자동 분배 플랜도 그 구조가 맞다
+
+`DEFAULT_TASKS_PER_DAY` 는 지금 **2** 다. 측정은 **3** 을 가리킨다 —
+`docs/남은-일.md` A1 을 읽고 정할 것.
+
 ## 코드 제약
 
 - **`:domain` 에 Android 의존성을 넣지 마라.** Compose 도 `Context` 도 안 된다
@@ -72,7 +91,7 @@
 ./gradlew :domain:test
 ```
 
-97개가 전부 통과해야 한다. 하나라도 깨지면 규칙이 바뀐 것이다.
+109개가 전부 통과해야 한다. 하나라도 깨지면 규칙이 바뀐 것이다.
 
 | 테스트 | 개수 | 성격 |
 |---|---|---|
@@ -83,6 +102,7 @@
 | `PlanBranchTest` | 10 | 파이썬이 단언하지 않은 분기 + 연쇄 재분배 |
 | `CarryOverTest` | 22 | 이월 규칙 (파이썬에 없던 새 규칙) |
 | `CatchUpTest` | 5 | 밀린 날의 두 갈래 (계획 조정 / 내일 같이 하기) |
+| `ChecklistTest` | 12 | 분량 계획 → 체크리스트 → 과목 다리 |
 
 앞의 38개는 파이썬 검증을 그대로 옮긴 것이다. 이름도 내용도 바꾸지 마라.
 그다음 32개도 파이썬을 돌려 기대값을 뽑은 것이라 마찬가지다.
@@ -98,7 +118,8 @@
 ./gradlew :sim:run --args="measure"    기획 노트 5.2 숫자 재측정
 ./gradlew :sim:run --args="rates"      완료율에 따른 ○ / △ / ✕ 분포
 ./gradlew :sim:run --args="skips"      빼먹는 날이 섞였을 때 ✕ 빈도
-./gradlew :sim:run --args="tasks"      하루치를 태스크 몇 개로 쪼갤 것인가
+./gradlew :sim:run --args="tasks"      하루치 분할 (가상 모델 — 14절이 뒤집음)
+./gradlew :sim:run --args="checklist"  같은 질문을 진짜 체크리스트로
 ./gradlew :sim:run --args="buffer"     버퍼 비율 튜닝
 ./gradlew :sim:run --args="freeze"     프리즈가 실제로 막아주는 비율
 ./gradlew :sim:run --args="carry"      이월이 만드는 눈덩이

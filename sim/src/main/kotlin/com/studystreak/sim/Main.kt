@@ -8,7 +8,8 @@ package com.studystreak.sim
  *   ./gradlew :sim:run --args="measure"    기획 노트 5.2 숫자 재측정
  *   ./gradlew :sim:run --args="rates"      완료율에 따른 ○ / △ / ✕ 분포
  *   ./gradlew :sim:run --args="skips"      빼먹는 날이 섞였을 때 ✕ 빈도
- *   ./gradlew :sim:run --args="tasks"      하루치를 태스크 몇 개로 쪼갤 것인가
+ *   ./gradlew :sim:run --args="tasks"      하루치를 태스크 몇 개로 쪼갤 것인가 (가상 모델)
+ *   ./gradlew :sim:run --args="checklist"  같은 질문을 진짜 체크리스트로
  *   ./gradlew :sim:run --args="buffer"     버퍼 비율 튜닝
  *   ./gradlew :sim:run --args="freeze"     프리즈가 실제로 막아주는 비율
  *   ./gradlew :sim:run --args="carry"      이월 규칙이 만드는 눈덩이
@@ -21,6 +22,7 @@ fun main(args: Array<String>) {
         "rates" -> printRateSweep()
         "skips" -> printSkipSweep()
         "tasks" -> printTaskSplit()
+        "checklist" -> printChecklistSplit()
         "buffer" -> printBufferTuning()
         "freeze" -> printFreezeCoverage()
         "carry" -> printCarryOver()
@@ -30,7 +32,7 @@ fun main(args: Array<String>) {
         else -> {
             val seed = arg.toIntOrNull()
             if (seed == null) {
-                println("쓰는 법: (없음) | <씨앗 숫자> | measure | rates | skips | tasks | buffer | freeze | carry | churn | replan | censoring")
+                println("쓰는 법: (없음) | <씨앗 숫자> | measure | rates | skips | tasks | checklist | buffer | freeze | carry | churn | replan | censoring")
             } else {
                 printScenario(seed)
             }
