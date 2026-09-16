@@ -25,11 +25,12 @@ fun main(args: Array<String>) {
         "freeze" -> printFreezeCoverage()
         "carry" -> printCarryOver()
         "churn" -> printChurnRisk()
+        "replan" -> printReplanCost()
         "censoring" -> printCensoringCheck()
         else -> {
             val seed = arg.toIntOrNull()
             if (seed == null) {
-                println("쓰는 법: (없음) | <씨앗 숫자> | measure | rates | skips | tasks | buffer | freeze | carry | churn | censoring")
+                println("쓰는 법: (없음) | <씨앗 숫자> | measure | rates | skips | tasks | buffer | freeze | carry | churn | replan | censoring")
             } else {
                 printScenario(seed)
             }
