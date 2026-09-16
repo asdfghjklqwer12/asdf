@@ -36,7 +36,7 @@ Compose UI 모듈(`:app`)은 아직 없다 — `settings.gradle.kts` 의 TODO �
 | `SettlementContractTest` | 8 | 파이썬에 없는 이식 조건 — 멱등성, `Clock` 주입, 7일 창 |
 | `StreakBranchTest` | 14 | 파이썬이 단언하지 않은 분기 + 30% 경계 |
 | `PlanBranchTest` | 10 | 같음 — 제외일, 남은 날 없음, 연쇄 재분배 등 |
-| `CarryOverTest` | 21 | 이월 규칙 — 파이썬에 없던 새 규칙 |
+| `CarryOverTest` | 22 | 이월 규칙 — 파이썬에 없던 새 규칙 |
 
 ## 규칙을 눈으로 보기
 
@@ -47,6 +47,7 @@ Compose UI 모듈(`:app`)은 아직 없다 — `settings.gradle.kts` 의 TODO �
 ./gradlew :sim:run --args="rates"      완료율에 따른 ○ / △ / ✕ 분포
 ./gradlew :sim:run --args="skips"      빼먹는 날이 섞였을 때 ✕ 빈도
 ./gradlew :sim:run --args="carry"      이월이 만드는 눈덩이
+./gradlew :sim:run --args="churn"      이탈 위험으로 본 이월 설정
 ./gradlew :sim:run --args="censoring"  측정이 시행 길이에 흔들리는지
 ```
 

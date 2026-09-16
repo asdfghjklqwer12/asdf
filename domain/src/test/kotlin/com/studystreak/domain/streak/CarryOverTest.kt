@@ -8,6 +8,7 @@ import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
+import kotlin.random.Random
 
 /**
  * 이월 규칙 — △·✕인 날 못 한 태스크가 다음 학습일로 넘어간다.
@@ -183,6 +184,36 @@ class CarryOverTest {
 
         assertEquals(0, subject.carriedTasks)
         assertEquals(3, subject.tasksOn(day(3)), "목요일은 원래 분량뿐")
+    }
+
+    @Test
+    fun `카드를 바로 수락하면 이월을 안 쓴 것과 똑같다`() {
+        // △가 생기는 즉시 "계획을 조정할까요?" 를 물어보고 사용자가 받아들이면,
+        // 이월이 쌓일 틈이 없어 판정이 이월을 안 켠 것과 완전히 같아진다.
+        // 이탈 위험이 가장 낮은 설정인 이유다 (docs/측정-결과.md 12절).
+        val withoutCarry = Subject("수학", required = true, weekdays = monToFri, tasks = 3)
+        val withCard = math()
+        val accA = Account()
+        val accB = Account()
+        val rng = Random(11)
+        val marksA = mutableListOf<Mark>()
+        val marksB = mutableListOf<Mark>()
+
+        for (i in 0 until 200) {
+            val date = monday.plusDays(i.toLong())
+            val checked = rng.nextInt(0, 4)
+
+            marksA += engine.settle(accA, listOf(withoutCarry), date, mapOf("수학" to checked)).log.mark
+
+            val r = engine.settle(accB, listOf(withCard), date, mapOf("수학" to checked))
+            marksB += r.log.mark
+            if (withCard.carriedTasks > 0) withCard.clearCarryOver() // 사용자가 카드를 수락
+        }
+
+        assertEquals(marksA, marksB, "판정이 한 날도 달라지면 안 된다")
+        assertEquals(accA.overall, accB.overall)
+        assertEquals(accA.longest, accB.longest)
+        assertEquals(withoutCarry.streak, withCard.streak)
     }
 
     @Test
