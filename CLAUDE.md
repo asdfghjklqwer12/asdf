@@ -68,14 +68,18 @@ val checklist = allocation.toChecklist()          // 하루치를 DEFAULT_TASKS_
 val subject   = checklist.toSubject("정석", required = true)
 ```
 
-- 나머지는 **앞줄이 갖는다** — 7페이지면 4p + 3p
+- 나머지는 **앞줄이 갖는다** — 7페이지면 3p + 2p + 2p
 - 분량이 줄 수보다 적으면 그만큼만 (1페이지짜리 날은 한 줄)
 - 버퍼일(0페이지)은 줄이 없어 **휴식일**이 된다 → 자동 ✕가 안 찍힌다
 - `toSubject` 는 `sameDay = true` 를 쓴다. 이름이 당일 계획처럼 보이지만 실제 뜻은
   **"날짜마다 태스크 수가 정해지는 과목"** 이고, 자동 분배 플랜도 그 구조가 맞다
 
-`DEFAULT_TASKS_PER_DAY` 는 지금 **2** 다. 측정은 **3** 을 가리킨다 —
-`docs/남은-일.md` A1 을 읽고 정할 것.
+`DEFAULT_TASKS_PER_DAY` 는 **3** 이다. 168만 플랜을 짝지어 재서 정했다
+(`docs/측정-결과.md` 14·15절). **줄 수는 ○ 비율을 안 바꾼다** — 폭 0.0%p 로 똑같다.
+줄 수가 정하는 건 **✕를 면하려면 몇 페이지를 읽어야 하나** 하나뿐이고, 30% 기준이
+줄 단위로 올림되기 때문이다. 3줄이면 7p 날에 3p(43%), 6p 날에 2p(33%) 로
+기획 5.2의 명목 기준 30% 에 가장 가깝다. 2줄이면 3페이지를 읽고도 ✕다.
+6·7줄이 3줄과 동점이지만 화면만 복잡해진다. **바꾸지 마라.**
 
 ## 코드 제약
 
@@ -91,7 +95,7 @@ val subject   = checklist.toSubject("정석", required = true)
 ./gradlew :domain:test
 ```
 
-109개가 전부 통과해야 한다. 하나라도 깨지면 규칙이 바뀐 것이다.
+111개가 전부 통과해야 한다. 하나라도 깨지면 규칙이 바뀐 것이다.
 
 | 테스트 | 개수 | 성격 |
 |---|---|---|
@@ -102,7 +106,7 @@ val subject   = checklist.toSubject("정석", required = true)
 | `PlanBranchTest` | 10 | 파이썬이 단언하지 않은 분기 + 연쇄 재분배 |
 | `CarryOverTest` | 22 | 이월 규칙 (파이썬에 없던 새 규칙) |
 | `CatchUpTest` | 5 | 밀린 날의 두 갈래 (계획 조정 / 내일 같이 하기) |
-| `ChecklistTest` | 12 | 분량 계획 → 체크리스트 → 과목 다리 |
+| `ChecklistTest` | 14 | 분량 계획 → 체크리스트 → 과목 다리 |
 
 앞의 38개는 파이썬 검증을 그대로 옮긴 것이다. 이름도 내용도 바꾸지 마라.
 그다음 32개도 파이썬을 돌려 기대값을 뽑은 것이라 마찬가지다.
@@ -120,6 +124,7 @@ val subject   = checklist.toSubject("정석", required = true)
 ./gradlew :sim:run --args="skips"      빼먹는 날이 섞였을 때 ✕ 빈도
 ./gradlew :sim:run --args="tasks"      하루치 분할 (가상 모델 — 14절이 뒤집음)
 ./gradlew :sim:run --args="checklist"  같은 질문을 진짜 체크리스트로
+./gradlew :sim:run --args="checklist-confirm"  그 답을 짝지은 비교로 확인
 ./gradlew :sim:run --args="buffer"     버퍼 비율 튜닝
 ./gradlew :sim:run --args="freeze"     프리즈가 실제로 막아주는 비율
 ./gradlew :sim:run --args="carry"      이월이 만드는 눈덩이

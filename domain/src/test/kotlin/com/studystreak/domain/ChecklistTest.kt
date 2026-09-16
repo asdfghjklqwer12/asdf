@@ -31,14 +31,13 @@ class ChecklistTest {
     // ── 나누기 ──────────────────────────────────────────────────
 
     @Test
-    fun `하루치를 두 줄로 나눈다`() {
+    fun `하루치를 세 줄로 나눈다`() {
         val checklist = jeongseok().toChecklist()
         val first = checklist.first()
 
         assertEquals(7, first.amount, "9월 9일은 7페이지")
-        assertEquals(2, first.tasks.size)
-        assertEquals(4, first.tasks[0].amount, "나머지는 앞줄이 갖는다")
-        assertEquals(3, first.tasks[1].amount)
+        assertEquals(3, first.tasks.size)
+        assertEquals(listOf(3, 2, 2), first.tasks.map { it.amount }, "7 = 3 + 2 + 2, 나머지는 앞줄이 갖는다")
     }
 
     @Test
@@ -46,9 +45,9 @@ class ChecklistTest {
         val checklist = jeongseok().toChecklist()
         val studyDays = checklist.filterNot { it.isRestDay }
 
-        assertEquals(listOf(1 to 4, 5 to 7), studyDays[0].tasks.map { it.from to it.to })
-        assertEquals(listOf(8 to 11, 12 to 14), studyDays[1].tasks.map { it.from to it.to })
-        assertEquals(listOf(15 to 18, 19 to 21), studyDays[2].tasks.map { it.from to it.to })
+        assertEquals(listOf(1 to 3, 4 to 5, 6 to 7), studyDays[0].tasks.map { it.from to it.to })
+        assertEquals(listOf(8 to 10, 11 to 12, 13 to 14), studyDays[1].tasks.map { it.from to it.to })
+        assertEquals(listOf(15 to 17, 18 to 19, 20 to 21), studyDays[2].tasks.map { it.from to it.to })
     }
 
     @Test
@@ -90,39 +89,39 @@ class ChecklistTest {
         val studyDays = checklist.filterNot { it.isRestDay }
 
         assertEquals(5, studyDays.size)
-        assertTrue(studyDays.all { it.tasks.size == 1 }, "1강을 두 줄로 쪼갤 수는 없다")
+        assertTrue(studyDays.all { it.tasks.size == 1 }, "1강을 세 줄로 쪼갤 수는 없다")
         assertEquals(5, studyDays.flatMap { it.tasks }.last().to)
     }
 
     @Test
-    fun `줄 수를 세 개로 바꿀 수도 있다`() {
-        val first = jeongseok().toChecklist(tasksPerDay = 3).first()
+    fun `줄 수를 두 개로 바꿀 수도 있다`() {
+        val first = jeongseok().toChecklist(tasksPerDay = 2).first()
 
-        assertEquals(3, first.tasks.size)
-        assertEquals(listOf(3, 2, 2), first.tasks.map { it.amount }, "7 = 3 + 2 + 2")
+        assertEquals(2, first.tasks.size)
+        assertEquals(listOf(4, 3), first.tasks.map { it.amount }, "7 = 4 + 3")
     }
 
     // ── 과목으로 넘기기 ─────────────────────────────────────────
 
     @Test
-    fun `두 줄 중 한 줄만 하면 세모다`() {
+    fun `세 줄 중 한 줄만 하면 세모다`() {
         val checklist = jeongseok().toChecklist()
         val subject = checklist.toSubject("정석", required = true)
         val firstStudyDay = checklist.first { !it.isRestDay }.date
 
         val log = engine.settle(Account(), listOf(subject), firstStudyDay, mapOf("정석" to 1)).log
 
-        assertEquals(Mark.PARTIAL, log.mark, "1/2 = 50% 라 △")
-        assertEquals(2, log.tasksTotal)
+        assertEquals(Mark.PARTIAL, log.mark, "1/3 = 33% 라 △")
+        assertEquals(3, log.tasksTotal)
     }
 
     @Test
-    fun `두 줄을 다 하면 동그라미다`() {
+    fun `세 줄을 다 하면 동그라미다`() {
         val checklist = jeongseok().toChecklist()
         val subject = checklist.toSubject("정석", required = true)
         val firstStudyDay = checklist.first { !it.isRestDay }.date
 
-        val log = engine.settle(Account(), listOf(subject), firstStudyDay, mapOf("정석" to 2)).log
+        val log = engine.settle(Account(), listOf(subject), firstStudyDay, mapOf("정석" to 3)).log
 
         assertEquals(Mark.FULL, log.mark)
         assertEquals(1, subject.streak)
@@ -136,7 +135,7 @@ class ChecklistTest {
 
         val log = engine.settle(Account(), listOf(subject), firstStudyDay, emptyMap()).log
 
-        assertEquals(Mark.NONE, log.mark, "0/2 = 0% 라 ✕")
+        assertEquals(Mark.NONE, log.mark, "0/3 = 0% 라 ✕")
     }
 
     @Test
@@ -153,12 +152,39 @@ class ChecklistTest {
         assertEquals(0, acc.overall, "휴식일은 늘지도 줄지도 않는다")
     }
 
-    // ── 한 줄이면 왜 안 되는가 ─────────────────────────────────
+    // ── 왜 세 줄인가 ───────────────────────────────────────────
+
+    @Test
+    fun `세 줄이면 일곱 쪽 중 세 쪽만 읽어도 세모다`() {
+        // 세 줄로 정한 이유. 30% 기준이 줄 단위로 올림되기 때문에 실제 문턱은
+        // "몇 페이지를 읽어야 ✕를 면하나" 로 정해진다. 3줄이면 3p(43%)로 기획 5.2의
+        // 명목 기준 30% 에 가장 가깝다.
+        val checklist = jeongseok().toChecklist()
+        val firstStudyDay = checklist.first { !it.isRestDay }.date
+
+        // 3페이지를 읽으면 3줄(3+2+2) 중 첫 줄이 덮인다
+        val threeLines = checklist.toSubject("정석", required = true)
+        val withThree = engine.settle(Account(), listOf(threeLines), firstStudyDay, mapOf("정석" to 1)).log
+        assertEquals(Mark.PARTIAL, withThree.mark, "1/3 = 33% ≥ 30% 라 △")
+    }
+
+    @Test
+    fun `두 줄이면 같은 세 쪽을 읽고도 가위표다`() {
+        // 2줄(4+3)은 첫 줄이 4페이지라 3페이지를 읽으면 체크가 하나도 안 된다.
+        // 실제 문턱이 57% 로 올라간다 — 기준 30% 의 두 배 가까이 엄격해진다.
+        val checklist = jeongseok().toChecklist(tasksPerDay = 2)
+        val subject = checklist.toSubject("정석", required = true)
+        val firstStudyDay = checklist.first { !it.isRestDay }.date
+
+        assertEquals(4, checklist.first().tasks.first().amount, "첫 줄이 4페이지다")
+
+        val log = engine.settle(Account(), listOf(subject), firstStudyDay, emptyMap()).log
+        assertEquals(Mark.NONE, log.mark, "3페이지를 읽어도 체크는 0 — 같은 노력이 ✕가 된다")
+    }
 
     @Test
     fun `한 줄로 만들면 절반을 해도 가위표다`() {
-        // A1 을 두 줄로 정한 이유. 기획 5.2가 태스크 단위 판정으로 바꾼 문제가
-        // 자동 분배 플랜에서 되살아난다.
+        // 기획 5.2가 태스크 단위 판정으로 바꾼 문제가 자동 분배 플랜에서 되살아난다.
         val checklist = jeongseok().toChecklist(tasksPerDay = 1)
         val subject = checklist.toSubject("정석", required = true)
         val firstStudyDay = checklist.first { !it.isRestDay }.date

@@ -34,12 +34,12 @@ private val WEEK = setOf(
     DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY,
 )
 
-private class SplitResult(
+internal class SplitResult(
     val full: Int, val partial: Int, val none: Int, val rest: Int,
     val resets: Int, val meanStreak: Double, val longestDrought: Int, val plans: Int,
 )
 
-private fun runSplit(
+internal fun runSplit(
     tasksPerDay: Int,
     keepReading: Double,
     skip: Double,
