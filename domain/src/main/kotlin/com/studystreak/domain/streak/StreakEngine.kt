@@ -28,6 +28,14 @@ data class SettleResult(
     val event: SettleEvent?,
     /** 이미 마감된 날짜라 아무것도 바꾸지 않았다 */
     val alreadySettled: Boolean,
+    /**
+     * 이 정산으로 다음 학습일에 넘어간 태스크 — {과목명: 이월 수}. 비어 있으면 넘어간 게 없다.
+     *
+     * 사용자에게 "수학 2개가 다음 학습일로 넘어갑니다. 계획을 다시 짜시겠어요?" 를 물을 때 쓴다.
+     * 그 자리에서 답을 안 해도 쌓인 몫은 `Subject.carriedTasks` 에 남아 있으므로,
+     * 나중에 다시 물어보려면 그쪽을 읽으면 된다. 재정산([alreadySettled])일 때는 비어 있다.
+     */
+    val carriedOver: Map<String, Int> = emptyMap(),
 )
 
 /**
@@ -69,16 +77,26 @@ class StreakEngine(
 
         val now = clock.instant()
         val reallyDone = mutableSetOf<String>()
+        val carriedOver = mutableMapOf<String, Int>()
+
+        // 이월분을 포함한 그날 배정량을 **먼저 확정한다.**
+        // 1단계가 carriedTasks 를 갱신하므로, 그 뒤에 tasksOn 을 다시 부르면
+        // 방금 다음 날로 넘긴 몫까지 오늘 분량으로 세게 된다.
+        val requiredToday: Map<Subject, Int> = subjects.associateWith { it.tasksOn(date) }
 
         // 1단계 — 과목별 (과목 완료 = 그날 태스크 전부 체크, 5.1)
         for (subject in subjects) {
             if (!subject.studiesOn(date)) continue
-            if ((doneTasks[subject.name] ?: 0) >= subject.tasksOn(date)) {
+            val required = requiredToday.getValue(subject) // 이월분을 포함한 오늘 몫
+            val done = doneTasks[subject.name] ?: 0
+            // 밀린 것까지 다 해야 완료다
+            if (done >= required) {
                 subject.streak += 1
                 subject.longest = maxOf(subject.longest, subject.streak)
                 if (subject.streak % 7 == 0 && subject.freeze < SUBJECT_FREEZE_MAX) {
                     subject.freeze += 1
                 }
+                subject.carriedTasks = 0 // 밀린 것까지 다 했으니 이월이 없다
                 reallyDone += subject.name
             } else {
                 if (subject.freeze > 0) {
@@ -86,6 +104,10 @@ class StreakEngine(
                 } else {
                     subject.streak = 0
                 }
+                // 과목 프리즈가 streak 을 지켜줘도 진도는 안 나갔으므로 이월은 그대로 쌓인다
+                val carry = subject.carryAfter(date, required, done)
+                subject.carriedTasks = carry
+                if (carry > 0) carriedOver[subject.name] = carry
                 // 전체 판정에서는 완료로 치지 않는다 → reallyDone 에 넣지 않음
             }
         }
@@ -93,8 +115,8 @@ class StreakEngine(
         // 2단계 — 전체 (△/✕는 태스크 단위로 가른다)
         val due = subjects.filter { it.required && it.studiesOn(date) }
         val done = due.filter { it.name in reallyDone }
-        val checked = due.sumOf { minOf(doneTasks[it.name] ?: 0, it.tasksOn(date)) }
-        val total = due.sumOf { it.tasksOn(date) }
+        val checked = due.sumOf { minOf(doneTasks[it.name] ?: 0, requiredToday.getValue(it)) }
+        val total = due.sumOf { requiredToday.getValue(it) }
         val ratio = if (total > 0) checked.toDouble() / total else 0.0
 
         val mark: Mark
@@ -153,6 +175,6 @@ class StreakEngine(
         }
 
         account.longest = maxOf(account.longest, account.overall)
-        return SettleResult(log, event, alreadySettled = false)
+        return SettleResult(log, event, alreadySettled = false, carriedOver = carriedOver)
     }
 }
