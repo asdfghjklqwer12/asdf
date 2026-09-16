@@ -12,6 +12,7 @@ package com.studystreak.sim
  *   ./gradlew :sim:run --args="checklist"  같은 질문을 진짜 체크리스트로
  *   ./gradlew :sim:run --args="checklist-confirm"  그 답을 짝지은 비교로 확인
  *   ./gradlew :sim:run --args="recovery"   48시간 복구가 실제로 얼마나 켜지나
+ *   ./gradlew :sim:run --args="a7"         광고 조각 · 프리즈 방어 대상 재검토
  *   ./gradlew :sim:run --args="buffer"     버퍼 비율 튜닝
  *   ./gradlew :sim:run --args="freeze"     프리즈가 실제로 막아주는 비율
  *   ./gradlew :sim:run --args="carry"      이월 규칙이 만드는 눈덩이
@@ -27,6 +28,7 @@ fun main(args: Array<String>) {
         "checklist" -> printChecklistSplit()
         "checklist-confirm" -> printChecklistConfirm()
         "recovery" -> printRecovery()
+        "a7" -> printA7()
         "buffer" -> printBufferTuning()
         "freeze" -> printFreezeCoverage()
         "carry" -> printCarryOver()
@@ -36,7 +38,7 @@ fun main(args: Array<String>) {
         else -> {
             val seed = arg.toIntOrNull()
             if (seed == null) {
-                println("쓰는 법: (없음) | <씨앗 숫자> | measure | rates | skips | tasks | checklist | checklist-confirm | recovery | buffer | freeze | carry | churn | replan | censoring")
+                println("쓰는 법: (없음) | <씨앗 숫자> | measure | rates | skips | tasks | checklist | checklist-confirm | recovery | a7 | buffer | freeze | carry | churn | replan | censoring")
             } else {
                 printScenario(seed)
             }

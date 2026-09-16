@@ -112,7 +112,21 @@ class Account(
         return grantShard(date, ShardSource.REST_CHECK)
     }
 
-    /** 보상형 광고 1회 시청. 2회 모여야 조각 1개 (B안), 하루 2회까지. */
+    /**
+     * 보상형 광고 1회 시청. 2회 모여야 조각 1개 (B안), 하루 2회까지.
+     *
+     * **앱에 붙이지 않기로 했다 (A7).** 파이썬 이식분이고 검증 3개가 걸려 있어 코드는
+     * 그대로 두지만, 화면에 광고 버튼을 만들지 마라.
+     *
+     * 재보니 **나흘에 한 번만 봐도** 평균 유지가 29 → 45일(+55%)이 되고, 매일 보면
+     * 11.9 → 83.8일(+604%)이 된다. 공부량은 하나도 안 늘었는데 숫자만 늘어난다.
+     * 조각 낭비가 월 29.5개 — 수급이 소모의 20배다 (`docs/측정-결과.md` 17절).
+     *
+     * 기획 5.5가 A안을 뺀 논리("계속 막히는 상태가 되어 ✕ 규칙이 헐거워진다")가
+     * B안에도, 띄엄띄엄 보는 사용자에게도 그대로 적용된다.
+     *
+     * ✕ 방어는 [restCheck] 로만 한다 — 그건 **실제로 공부해야** 얻는다.
+     */
     fun watchAd(date: LocalDate): ShardResult {
         if (adViews.count { it == date } >= AD_VIEWS_PER_DAY) {
             return ShardResult.Rejected(ShardResult.Rejected.Reason.DAILY_AD_LIMIT)

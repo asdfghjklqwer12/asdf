@@ -49,6 +49,8 @@ private fun runRecovery(
     trials: Int = 300,
     days: Int = 365,
     seed: Int = 20260916,
+    /** 그날 앱을 아예 안 여는 확률. 0이면 난수를 안 뽑아 기존 수치가 그대로 재현된다 */
+    skipRate: Double = 0.0,
 ): RecoveryRun {
     val engine = StreakEngine(Clock.fixed(Instant.parse("2026-01-01T12:00:00Z"), ZoneOffset.UTC))
     val rng = Random(seed)
@@ -85,8 +87,9 @@ private fun runRecovery(
             brokeYesterday?.let { if (!recoveredToday) { streakLengths += it; realResets++ } }
             brokeYesterday = null
 
+            val skipped = skipRate > 0.0 && rng.nextDouble() < skipRate
             val done = subjects.associate { s ->
-                s.name to (0 until s.tasks).count { rng.nextDouble() < completionRate }
+                s.name to (0 until s.tasks).count { rng.nextDouble() < completionRate && !skipped }
             }
             val before = account.overall
             val result = engine.settle(account, subjects, date, done)
@@ -142,6 +145,33 @@ fun printRecovery() {
             println(if (mode == Mode.OFF) "—" else "%+.0f%%".format(100.0 * (r.meanStreak - off.meanStreak) / off.meanStreak))
         }
     }
+    // 앱을 아예 안 여는 날이 섞이면 ✕가 다시 나타난다. 그 경우도 봐야 한다
+    println()
+    println("한 달에 이틀쯤 아예 안 여는 사용자 (완료율 95% · 안 여는 날 7%)")
+    println("-".repeat(RULE_WIDTH))
+    for (subjectCount in listOf(1, 3)) {
+        val runs = Mode.entries.associateWith {
+            runRecovery(it, 0.95, makeUpRate = 0.70, subjectCount = subjectCount, skipRate = 0.07)
+        }
+        val off = runs.getValue(Mode.OFF)
+        println()
+        println("필수 ${subjectCount}과목 — 1인당 끊김 %.1f회/년 ".format(off.breaks.toDouble() / off.trials) +
+            "(△발 %.0f%% · ✕발 %.0f%%)".format(
+                100.0 * off.fromPartial / off.breaks, 100.0 * off.fromNone / off.breaks))
+        print(cell("모드", 14))
+        for (h in listOf("복구 발동", "살린 끊김", "실질 초기화", "평균 유지", "복구 없을 때 대비")) print(cell(h, 13))
+        println()
+        for (mode in Mode.entries) {
+            val r = runs.getValue(mode)
+            print(cell(mode.label, 14))
+            print(cell("%.1f회/년".format(r.used.toDouble() / r.trials), 13))
+            print(cell(if (r.breaks == 0) "—" else "%.1f%%".format(100.0 * r.used / r.breaks), 13))
+            print(cell("%.1f회/년".format(r.realResets.toDouble() / r.trials), 13))
+            print(cell("%.1f일".format(r.meanStreak), 13))
+            println(if (mode == Mode.OFF) "—" else "%+.0f%%".format(100.0 * (r.meanStreak - off.meanStreak) / off.meanStreak))
+        }
+    }
+
     println("=".repeat(RULE_WIDTH))
     println("\"살린 끊김\" = 전체 끊김 중 복구가 되돌린 비율. 월 1회 상한이 천장을 만든다")
     println("=".repeat(RULE_WIDTH))

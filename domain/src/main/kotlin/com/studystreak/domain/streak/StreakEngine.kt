@@ -1,6 +1,7 @@
 package com.studystreak.domain.streak
 
 import com.studystreak.domain.streak.StreakRules.DEFAULT_DAY_CUTOFF_HOUR
+import com.studystreak.domain.streak.StreakRules.FREEZE_BLOCKS_PARTIAL_RESET
 import com.studystreak.domain.streak.StreakRules.PARTIAL_MIN_RATIO
 import com.studystreak.domain.streak.StreakRules.PARTIAL_RESET_AT
 import com.studystreak.domain.streak.StreakRules.RECOVERIES_PER_MONTH
@@ -24,6 +25,14 @@ sealed interface SettleEvent {
 
     /** 프리즈가 없어 ✕로 초기화됨 */
     data object ResetWithoutFreeze : SettleEvent
+
+    /**
+     * △ 3개 초기화를 전체 프리즈로 방어 — `StreakEngine.freezeBlocksPartialReset` 이 켜졌을 때만 난다.
+     *
+     * ✕ 방어와 같은 모양이다. △가 준 +1은 살아 있고, 창의 △도 안 비운다 —
+     * 그래서 창이 빌 때까지 또 △를 내면 다시 위태로워진다.
+     */
+    data class FreezeDefendedPartial(val partialCount: Int) : SettleEvent
 }
 
 data class SettleResult(
@@ -59,6 +68,16 @@ class StreakEngine(
     private val clock: Clock,
     /** 하루 마감 시각. 사용자 설정, 기본 새벽 3시 (5.3) */
     private val dayCutoffHour: Int = DEFAULT_DAY_CUTOFF_HOUR,
+    /**
+     * 전체 프리즈가 **△ 3개 초기화도** 막는가. 기본은 끔 — 기획 5.5는 ✕만 막게 했다.
+     *
+     * **재봤고 안 켜기로 했다 (A7).** 켜도 얻는 게 없다 — 프리즈는 하나뿐이라 △를 막으면
+     * ✕를 못 막고, △ 방어는 창의 △를 안 비워서 다음 △ 하나에 또 위태로워진다.
+     * 필수 3과목이면 켠 쪽이 오히려 미세하게 나쁘다 (9.9일 vs 10.0일).
+     * 광고까지 같이 켜면 191.8일이 되어 규칙이 사실상 없어진다
+     * (`docs/측정-결과.md` 17절). **켜지 마라.** 재현하려면 `--args="a7"`.
+     */
+    private val freezeBlocksPartialReset: Boolean = FREEZE_BLOCKS_PARTIAL_RESET,
 ) {
     /**
      * 지금 이 순간이 어느 "학습일"에 속하는가. 마감 시각 전이면 아직 전날이다 (5.3).
@@ -178,7 +197,13 @@ class StreakEngine(
             val recent = account.logs.filter {
                 it.mark == Mark.PARTIAL && it.date >= lo && it.date <= date && !it.consumed
             }
-            if (recent.size >= PARTIAL_RESET_AT) {
+            if (recent.size >= PARTIAL_RESET_AT && freezeBlocksPartialReset && account.freeze > 0) {
+                account.freeze -= 1
+                account.freezeUsedAt = date
+                event = SettleEvent.FreezeDefendedPartial(recent.size)
+                // overall 그대로 — △가 준 +1 은 살아 있다.
+                // 창의 △도 안 비운다. ✕를 막았을 때와 같은 모양이다
+            } else if (recent.size >= PARTIAL_RESET_AT) {
                 val cause = SettleEvent.PartialReset(recent.size)
                 recordBreak(account.overall, cause) // △는 이미 +1 된 값이다 — 복구는 초기화만 무른다
                 account.overall = 0

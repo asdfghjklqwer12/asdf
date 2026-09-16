@@ -124,6 +124,7 @@ private fun describe(event: SettleEvent?): String? = when (event) {
     is SettleEvent.PartialReset -> "△ ${event.partialCount}개 → 초기화"
     SettleEvent.FreezeDefended -> "프리즈로 방어 (숫자 유지)"
     SettleEvent.ResetWithoutFreeze -> "프리즈 없음 → 초기화"
+    is SettleEvent.FreezeDefendedPartial -> "△ ${event.partialCount}개를 프리즈로 방어 (숫자 유지)"
     null -> null
 }
 

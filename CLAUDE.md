@@ -106,6 +106,22 @@ engine.recover(account, subjects, today, makeUp)             // 다 했으면 �
 - 이월이 켜진 과목은 밀린 몫이 **이미 다음 날 배정에 들어가 있다.**
   `RecoveryOffer.Available.alreadyCarried` 가 그 목록이다 — 앱이 같은 일을 두 번 시키면 안 된다
 
+## 정해진 것 — 광고로 조각을 주지 않는다 (A7)
+
+`Account.watchAd` 는 파이썬 이식분이라 코드는 남아 있지만 **앱에 붙이지 마라.**
+검증 3개가 걸려 있어서 안 지웠을 뿐이다.
+
+- **나흘에 한 번만 봐도** 평균 유지가 29 → 45일(+55%)이 된다. 매일 보면 11.9 → 83.8일
+- 공부량은 하나도 안 늘었는데 숫자만 는다. 조각 낭비가 월 29.5개 — 수급이 소모의 20배
+- 기획 5.5가 A안을 뺀 논리가 B안에도, 띄엄띄엄 보는 사용자에게도 그대로 적용된다
+- **✕ 방어는 `restCheck`(휴식일 자발 체크)로만 한다** — 그건 실제로 공부해야 얻는다.
+  11.9 → 29.6일로 적정하고 낭비가 월 2.2회라 상한이 실제로 걸리고 있다
+- **`freezeBlocksPartialReset` 을 켜지 마라.** 프리즈가 △도 막게 해봤는데 값이 없다.
+  프리즈는 하나뿐이라 △를 막으면 ✕를 못 막고, △ 방어는 창을 안 비워 한 칸 미룰 뿐이다
+- **A3(결제로 조각)도 같은 검사를 받아야 한다** — 돈으로 프리즈를 늘 채우면 광고와 같다
+
+`docs/측정-결과.md` 17절 · 재현은 `--args="a7"`.
+
 ## 코드 제약
 
 - **`:domain` 에 Android 의존성을 넣지 마라.** Compose 도 `Context` 도 안 된다
@@ -120,7 +136,7 @@ engine.recover(account, subjects, today, makeUp)             // 다 했으면 �
 ./gradlew :domain:test
 ```
 
-132개가 전부 통과해야 한다. 하나라도 깨지면 규칙이 바뀐 것이다.
+136개가 전부 통과해야 한다. 하나라도 깨지면 규칙이 바뀐 것이다.
 
 | 테스트 | 개수 | 성격 |
 |---|---|---|
@@ -133,6 +149,7 @@ engine.recover(account, subjects, today, makeUp)             // 다 했으면 �
 | `CatchUpTest` | 5 | 밀린 날의 두 갈래 (계획 조정 / 내일 같이 하기) |
 | `ChecklistTest` | 14 | 분량 계획 → 체크리스트 → 과목 다리 |
 | `RecoveryTest` | 21 | 48시간 복구 (파이썬에 없던 새 규칙) |
+| `FreezePartialSwitchTest` | 4 | A7에서 재보고 끈 스위치의 동작 고정 |
 
 앞의 38개는 파이썬 검증을 그대로 옮긴 것이다. 이름도 내용도 바꾸지 마라.
 그다음 32개도 파이썬을 돌려 기대값을 뽑은 것이라 마찬가지다.
@@ -152,6 +169,7 @@ engine.recover(account, subjects, today, makeUp)             // 다 했으면 �
 ./gradlew :sim:run --args="checklist"  같은 질문을 진짜 체크리스트로
 ./gradlew :sim:run --args="checklist-confirm"  그 답을 짝지은 비교로 확인
 ./gradlew :sim:run --args="recovery"   48시간 복구가 실제로 얼마나 켜지나
+./gradlew :sim:run --args="a7"         광고 조각 · 프리즈 방어 대상 재검토
 ./gradlew :sim:run --args="buffer"     버퍼 비율 튜닝
 ./gradlew :sim:run --args="freeze"     프리즈가 실제로 막아주는 비율
 ./gradlew :sim:run --args="carry"      이월이 만드는 눈덩이

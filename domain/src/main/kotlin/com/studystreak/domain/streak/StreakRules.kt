@@ -44,4 +44,11 @@ object StreakRules {
 
     /** 복구는 달력 월 기준 이만큼만 (5.5) */
     const val RECOVERIES_PER_MONTH = 1
+
+    /**
+     * 전체 프리즈가 △ 3개 초기화도 막는가. 기획 5.5는 ✕만 막게 했다.
+     *
+     * **재봤고 기각했다 (A7, `docs/측정-결과.md` 17절).** 켜도 얻는 게 없다. 켜지 마라.
+     */
+    const val FREEZE_BLOCKS_PARTIAL_RESET = false
 }
